@@ -6,6 +6,20 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class DIYArrayList<T> implements List<T> {
+
+    private final int DEF_CAPACITY = 10;
+
+    private Object[] elements;
+
+    private int size;
+
+
+
+    public DIYArrayList() {
+        elements = new Object[DEF_CAPACITY];
+        size = DEF_CAPACITY;
+    }
+
     @Override
     public int size() {
         return 0;
