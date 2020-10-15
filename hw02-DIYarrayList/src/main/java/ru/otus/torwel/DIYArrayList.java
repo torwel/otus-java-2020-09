@@ -1,6 +1,7 @@
 package ru.otus.torwel;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class DIYArrayList<T> implements List<T> {
 
@@ -18,6 +19,12 @@ public class DIYArrayList<T> implements List<T> {
      * Текущий размер массива для элементов списка.
      */
     private int size;
+
+    /**
+     * Переменная необходима для определения конкурирующих модификаций
+     * массива элементов.
+     */
+    private int modCount = 0;
 
     /**
      * Создание пустого списка размером по умолчанию.
@@ -72,10 +79,13 @@ public class DIYArrayList<T> implements List<T> {
         return false;
     }
 
+/*
+Определен ниже
     @Override
     public Iterator<T> iterator() {
         return null;
     }
+*/
 
     @Override
     public Object[] toArray() {
@@ -147,6 +157,7 @@ public class DIYArrayList<T> implements List<T> {
         }
         elements[s] = e;
         size++;
+//        TODO: Во всех модифицирующих методах должно быть изменение modCount++;
     }
 
     /**
@@ -219,9 +230,29 @@ public class DIYArrayList<T> implements List<T> {
 
     }
 
+    /**
+     * Удаляет определенный индексом элемент. Если справа есть элементы,
+     * то они сдвигаются влево на одну позицию.
+     *
+     * @param index индекс удаляемого элемета
+     * @return элемент, который был удален из списка
+     * @throws IndexOutOfBoundsException {@inheritDoc}
+     */
     @Override
     public T remove(int index) {
-        return null;
+        Objects.checkIndex(index, size);
+        final Object[] es = elements;
+
+        @SuppressWarnings("unchecked")
+        T oldValue = (T) es[index];
+
+        modCount++;
+        final int newSize;
+        if ((newSize = size - 1) > index)
+            System.arraycopy(es, index + 1, es, index, newSize - index);
+        es[size = newSize] = null;
+
+        return oldValue;
     }
 
     @Override
@@ -234,18 +265,189 @@ public class DIYArrayList<T> implements List<T> {
         return 0;
     }
 
-    @Override
-    public ListIterator<T> listIterator() {
-        return null;
+    /**
+     * Возвращает итератор элементов списка, указывающий на переданный
+     * в качестве параметра индекс. Метод {@link ListIterator#next next}
+     * вернет элемент с позиции index.
+     * Метод {@link ListIterator#previous previous} вернет элемент
+     * с позиции index - 1.
+     *
+     * @throws IndexOutOfBoundsException {@inheritDoc}
+     */
+    public ListIterator<T> listIterator(int index) {
+        rangeCheckForAdd(index);
+        return new DIYArrayList.ListItr(index);
     }
 
-    @Override
-    public ListIterator<T> listIterator(int index) {
-        return null;
+    /**
+     * Возвращает итератор элементов списка.
+     */
+    public ListIterator<T> listIterator() {
+        return new DIYArrayList.ListItr(0);
+    }
+
+    /**
+     * Возвращает итератор элементов списка.
+     */
+    public Iterator<T> iterator() {
+        return new DIYArrayList.Itr();
+    }
+
+    /**
+     * An optimized version of AbstractList.Itr
+     */
+    private class Itr implements Iterator<T> {
+        int cursor;       // index of next element to return
+        int lastRet = -1; // index of last element returned; -1 if no such
+        int expectedModCount = modCount;
+
+        // prevent creating a synthetic constructor
+        Itr() {}
+
+        public boolean hasNext() {
+            return cursor != size;
+        }
+
+        @SuppressWarnings("unchecked")
+        public T next() {
+            checkForComodification();
+            int i = cursor;
+            if (i >= size)
+                throw new NoSuchElementException();
+            Object[] elementData = DIYArrayList.this.elements;
+            if (i >= elementData.length)
+                throw new ConcurrentModificationException();
+            cursor = i + 1;
+            return (T) elementData[lastRet = i];
+        }
+
+        public void remove() {
+            if (lastRet < 0)
+                throw new IllegalStateException();
+            checkForComodification();
+
+            try {
+                DIYArrayList.this.remove(lastRet);
+                cursor = lastRet;
+                lastRet = -1;
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+/*
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            Objects.requireNonNull(action);
+            final int size = DIYArrayList.this.size;
+            int i = cursor;
+            if (i < size) {
+                final Object[] es = elements;
+                if (i >= es.length)
+                    throw new ConcurrentModificationException();
+                for (; i < size && modCount == expectedModCount; i++)
+                    action.accept(elementAt(es, i));
+                // update once at end to reduce heap write traffic
+                cursor = i;
+                lastRet = i - 1;
+                checkForComodification();
+            }
+        }
+*/
+
+        final void checkForComodification() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+        }
+    }
+
+    /**
+     * An optimized version of AbstractList.ListItr
+     */
+    private class ListItr extends Itr implements ListIterator<T> {
+        ListItr(int index) {
+            super();
+            cursor = index;
+        }
+
+        public boolean hasPrevious() {
+            return cursor != 0;
+        }
+
+        public int nextIndex() {
+            return cursor;
+        }
+
+        public int previousIndex() {
+            return cursor - 1;
+        }
+
+        @SuppressWarnings("unchecked")
+        public T previous() {
+            checkForComodification();
+            int i = cursor - 1;
+            if (i < 0)
+                throw new NoSuchElementException();
+            Object[] elementData = DIYArrayList.this.elements;
+            if (i >= elementData.length)
+                throw new ConcurrentModificationException();
+            cursor = i;
+            return (T) elementData[lastRet = i];
+        }
+
+        public void set(T e) {
+            if (lastRet < 0)
+                throw new IllegalStateException();
+            checkForComodification();
+
+            try {
+                DIYArrayList.this.set(lastRet, e);
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        public void add(T e) {
+            checkForComodification();
+
+            try {
+                int i = cursor;
+                DIYArrayList.this.add(i, e);
+                cursor = i + 1;
+                lastRet = -1;
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
     }
 
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
         return null;
     }
+
+    /**
+     * A version of rangeCheck used by add and addAll.
+     */
+    private void rangeCheckForAdd(int index) {
+        if (index > size || index < 0)
+            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+    }
+
+    /**
+     * Constructs an IndexOutOfBoundsException detail message.
+     * Of the many possible refactorings of the error handling code,
+     * this "outlining" performs best with both server and client VMs.
+     */
+    private String outOfBoundsMsg(int index) {
+        return "Index: "+index+", Size: "+size;
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> T elementAt(Object[] es, int index) {
+        return (T) es[index];
+    }
+
 }
