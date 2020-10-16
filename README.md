@@ -36,3 +36,5 @@
 - Collections.sort(List<T> list, Comparator<? super T> c)
 
 Работа указанных методов продемонстрирована в класе Launch.
+
+---
