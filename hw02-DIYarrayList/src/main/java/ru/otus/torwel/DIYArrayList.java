@@ -1,7 +1,6 @@
 package ru.otus.torwel;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class DIYArrayList<T> implements List<T> {
 
@@ -55,7 +54,6 @@ public class DIYArrayList<T> implements List<T> {
         }
     }
 
-
     /**
      * Возвращает текущий размер списка.
      * @return количество элементов в списке
@@ -76,96 +74,130 @@ public class DIYArrayList<T> implements List<T> {
 
     @Override
     public boolean contains(Object o) {
-        return false;
+        throw new UnsupportedOperationException();
     }
-
-/*
-Определен ниже
-    @Override
-    public Iterator<T> iterator() {
-        return null;
-    }
-*/
 
     @Override
     public Object[] toArray() {
-        return new Object[0];
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T1> T1[] toArray(T1[] a) {
-        return null;
-    }
-
-    @Override
-    public boolean add(T t) {
-
-        return false;
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends T> c) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
+    /**
+     * Удаляет все элементы списка
+     */
     @Override
     public void clear() {
-
+        modCount++;
+        final Object[] es = elements;
+        for (int to = size, i = size = 0; i < to; i++)
+            es[i] = null;
     }
 
+    /**
+     * Возвращает элемент с определенной позиции списка.
+     *
+     * @param  index индекс возвращаемого элемента
+     * @return с указанной позиции списка'
+     * @throws IndexOutOfBoundsException {@inheritDoc}
+     */
     @Override
     public T get(int index) {
-        return null;
+        Objects.checkIndex(index, size);
+        return getElement(index);
     }
 
+    @SuppressWarnings("unchecked")
+    private T getElement(int index) {
+        return (T) elements[index];
+    }
+
+    /**
+     * Заменяет элемент в списке.
+     * @param index индекс заменяемого элемента
+     * @param element новый элемент, который должен быть установлен
+     * @return старый элемент
+     */
     @Override
     public T set(int index, T element) {
-        return null;
+        Objects.checkIndex(index, size);
+        T oldValue = getElement(index);
+        elements[index] = element;
+        return oldValue;
     }
 
     /**
-     *
+     * Добавляет элемент в конец списка.
+     * @param element добавляемый элемент
+     * @return true если колеекция изменена в результате вызова
      */
-    private void add(T e, Object[] elements, int s) {
-        if (s == elements.length) {
+    @Override
+    public boolean add(T element) {
+        modCount++;
+        if (size == elements.length) {
             elements = grow();
         }
-        elements[s] = e;
+        elements[size] = element;
         size++;
-//        TODO: Во всех модифицирующих методах должно быть изменение modCount++;
+        return true;
     }
 
     /**
-     * Increases the capacity to ensure that it can hold at least the
-     * number of elements specified by the minimum capacity argument.
+     * Вставляет переданный элемент на определенную позицию списка.
+     * При этом часть списка от текущей позиции до конца сдвигается вправо.
      *
-     * @param minCapacity the desired minimum capacity
-     * @throws OutOfMemoryError if minCapacity is less than zero
+     * @param index индекс позиции, куда устанавливается новый элемент
+     * @param element добавляемый элемент списка
+     * @throws IndexOutOfBoundsException {@inheritDoc}
+     */
+    @Override
+    public void add(int index, T element) {
+        rangeCheck(index);
+        modCount++;
+        final int s = size;
+        Object[] els  = this.elements;
+        if (s == els.length)
+            els = grow();
+        System.arraycopy(els, index, els, index + 1, s - index);
+        els[index] = element;
+        size = s + 1;
+    }
+
+    /**
+     * Увеличивает емкость массива элементов так, чтобы обеспечить размещение
+     * минимального количества элементов, передаваемого аргументом.
+     *
+     * @param minCapacity желаемое минимальное изменение емкости
+     * @throws OutOfMemoryError если minCapacity отрицательно
      */
     private Object[] grow(int minCapacity) {
         int oldCapacity = elements.length;
@@ -184,28 +216,20 @@ public class DIYArrayList<T> implements List<T> {
     }
 
     /**
-     * Calculates a new array length given an array's current length, a preferred
-     * growth value, and a minimum growth value.  If the preferred growth value
-     * is less than the minimum growth value, the minimum growth value is used in
-     * its place.  If the sum of the current length and the preferred growth
-     * value does not exceed {@link #MAX_ARRAY_LENGTH}, that sum is returned.
-     * If the sum of the current length and the minimum growth value does not
-     * exceed {@code MAX_ARRAY_LENGTH}, then {@code MAX_ARRAY_LENGTH} is returned.
-     * If the sum does not overflow an int, then {@code Integer.MAX_VALUE} is
-     * returned.  Otherwise, {@code OutOfMemoryError} is thrown.
+     * Вычисляет новую длину массива для элементов списка на основе значений
+     * текущей длины, предпочитаемого прироста и минимального прироста.
+     * Из предпочитаемого и минимального прироста выбирается максимальное
+     * значение и используется для вычисления.
      *
-     * @param oldLength   current length of the array (must be non negative)
-     * @param minGrowth   minimum required growth of the array length (must be
-     *                    positive)
-     * @param prefGrowth  preferred growth of the array length (ignored, if less
-     *                    then {@code minGrowth})
-     * @return the new length of the array
-     * @throws OutOfMemoryError if increasing {@code oldLength} by
-     *                    {@code minGrowth} overflows.
+     * @param oldLength   значение текущей длины массива (не отрицательное)
+     * @param minGrowth   минимально необходимый прирост длины (положительное)
+     * @param prefGrowth  предпочтительный прирост длины (игнорируется если
+     *                    меньше {@code minGrowth})
+     * @return значение новой длины массива
+     * @throws OutOfMemoryError если увеличение {@code oldLength} на значение
+     *                    {@code minGrowth} превышает Integer.MAX_VALUE.
      */
     private int newLength(int oldLength, int minGrowth, int prefGrowth) {
-        // assert oldLength >= 0
-        // assert minGrowth > 0
 
         int newLength = Math.max(minGrowth, prefGrowth) + oldLength;
         if (newLength - MAX_ARRAY_LENGTH <= 0) {
@@ -216,18 +240,13 @@ public class DIYArrayList<T> implements List<T> {
 
     private int hugeLength(int oldLength, int minGrowth) {
         int minLength = oldLength + minGrowth;
-        if (minLength < 0) { // overflow
+        if (minLength < 0) {
             throw new OutOfMemoryError("Required array length too large");
         }
         if (minLength <= MAX_ARRAY_LENGTH) {
             return MAX_ARRAY_LENGTH;
         }
         return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public void add(int index, T element) {
-
     }
 
     /**
@@ -256,13 +275,18 @@ public class DIYArrayList<T> implements List<T> {
     }
 
     @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int indexOf(Object o) {
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -275,7 +299,7 @@ public class DIYArrayList<T> implements List<T> {
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
     public ListIterator<T> listIterator(int index) {
-        rangeCheckForAdd(index);
+        rangeCheck(index);
         return new DIYArrayList.ListItr(index);
     }
 
@@ -335,26 +359,6 @@ public class DIYArrayList<T> implements List<T> {
                 throw new ConcurrentModificationException();
             }
         }
-
-/*
-        @Override
-        public void forEachRemaining(Consumer<? super T> action) {
-            Objects.requireNonNull(action);
-            final int size = DIYArrayList.this.size;
-            int i = cursor;
-            if (i < size) {
-                final Object[] es = elements;
-                if (i >= es.length)
-                    throw new ConcurrentModificationException();
-                for (; i < size && modCount == expectedModCount; i++)
-                    action.accept(elementAt(es, i));
-                // update once at end to reduce heap write traffic
-                cursor = i;
-                lastRet = i - 1;
-                checkForComodification();
-            }
-        }
-*/
 
         final void checkForComodification() {
             if (modCount != expectedModCount)
@@ -425,29 +429,38 @@ public class DIYArrayList<T> implements List<T> {
 
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     /**
-     * A version of rangeCheck used by add and addAll.
+     * Проверка вхождения индекса в допустимые пределы.
      */
-    private void rangeCheckForAdd(int index) {
+    private void rangeCheck(int index) {
         if (index > size || index < 0)
-            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+            throw new IndexOutOfBoundsException("Index: "+index+", Size: "+size);
     }
 
     /**
-     * Constructs an IndexOutOfBoundsException detail message.
-     * Of the many possible refactorings of the error handling code,
-     * this "outlining" performs best with both server and client VMs.
+     * Возвращает строку с перечислением элементов списка
      */
-    private String outOfBoundsMsg(int index) {
-        return "Index: "+index+", Size: "+size;
+    public String toString(){
+        if (size == 0)
+            return super.toString();
+        StringBuilder str = new StringBuilder("[");
+        for(int i = 0; ; i++) {
+            str.append(elements[i].toString());
+            if (i == size - 1)
+                return str.append("]").toString();
+            str.append(", ");
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    static <T> T elementAt(Object[] es, int index) {
-        return (T) es[index];
+    @Override
+    public void sort(Comparator<? super T> c) {
+        final int expectedModCount = modCount;
+        Arrays.sort((T[]) elements, 0, size, c);
+        if (modCount != expectedModCount)
+            throw new ConcurrentModificationException();
+        modCount++;
     }
-
 }
