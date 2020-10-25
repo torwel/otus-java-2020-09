@@ -8,10 +8,17 @@ public class TestThis {
 
     private DemoClass DC;
 
-    @Before
-    public void setTestObject() {
-        System.out.println("Run setTestObject. Object hash: " + this.hashCode());
+    /**
+     * Don't set private DC variable in @Before annotated methods.
+     * Their invoke order are not guaranteed.
+     */
+    public TestThis() {
         DC = new DemoClass("Test case");
+    }
+
+    @Before
+    public void setSomething() {
+        System.out.println("Run setSomething. Object hash: " + this.hashCode());
     }
 
     @Before
