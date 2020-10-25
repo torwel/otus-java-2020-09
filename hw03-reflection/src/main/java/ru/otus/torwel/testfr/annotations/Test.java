@@ -1,4 +1,4 @@
-package ru.otus.torwel.annotations;
+package ru.otus.torwel.testfr.annotations;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

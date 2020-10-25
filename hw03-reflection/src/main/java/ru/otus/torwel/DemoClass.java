@@ -2,32 +2,70 @@ package ru.otus.torwel;
 
 public class DemoClass {
 
-    public int publicFieldForDemo;
+    private String opName = "initValue";
 
-    private String valuePrivate = "initValue";
+    private char operation;
 
-    public DemoClass(String valuePrivate) {
-        this.valuePrivate = valuePrivate;
+    private int argA;
+    private int argB;
+    private int result;
+
+    public DemoClass(String opName) {
+        this.opName = opName;
     }
 
-    public String getValuePrivate() {
-        return valuePrivate;
+    public String getOpName() {
+        return opName;
     }
 
-    public void setValuePrivate(String valuePrivate) {
-        this.valuePrivate = valuePrivate;
+    public void setArgA(int argA) {
+        this.argA = argA;
     }
 
-    private void privateMethod() {
-        System.out.println("privateMethod executed");
+    public int getArgA() {
+        return argA;
+    }
+
+    public void setArgB(int argB) {
+        this.argB = argB;
+    }
+
+    public int getArgB() {
+        return argB;
+    }
+
+    public void setOperation(char operation) {
+        this.operation = operation;
+    }
+
+    public int getResult() {
+        //TODO: Сделать проверку производилось ли вычисление.
+        return result;
+    }
+
+    public void calculate() {
+        switch (operation) {
+            case '+':
+                result = argA + argB;
+                break;
+            case '-':
+                result = argA - argB;
+                break;
+            case '*':
+                result = argA * argB;
+                break;
+//            case '/':
+//                result = argA / argB;
+//                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
     }
 
     @Override
     public String toString() {
-        return "DemoClass{" +
-                "publicFieldForDemo=" + publicFieldForDemo +
-                ", value='" + valuePrivate + '\'' +
-                '}';
+        //TODO: Сделать проверку производилось ли вычисление.
+        return String.format("%s \n[ %d + %d = %d ]", opName, argA, argB, result);
     }
 
 }
