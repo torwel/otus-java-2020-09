@@ -3,6 +3,9 @@ package ru.otus.torwel;
 import ru.otus.torwel.testfr.annotations.After;
 import ru.otus.torwel.testfr.annotations.Before;
 import ru.otus.torwel.testfr.annotations.Test;
+import ru.otus.torwel.testfr.exceptions.TestFrResultException;
+
+import static ru.otus.torwel.testfr.TestFr.checkResult;
 
 public class TestThis {
 
@@ -18,53 +21,83 @@ public class TestThis {
 
     @Before
     public void setSomething() {
-        System.out.println("Run setSomething. Object hash: " + this.hashCode());
+        System.out.println("Тест обекта: " + this.hashCode());
     }
 
     @Before
     public void setVariables() {
-        System.out.println("Run setTestObject. Object hash: " + this.hashCode());
         DC.setArgA(10);
         DC.setArgB(5);
     }
 
     @Test
-    public void testAddition() {
-        System.out.println("Run testAddition. Object hash: " + this.hashCode());
+    public void testAddition() throws TestFrResultException {
         DC.setOperation('+');
+        DC.setArgA(10);
+        DC.setArgB(10);
         DC.calculate();
-        //TODO: Как проверять результат?
+        checkResult(DC.getResult(), 19);
     }
 
     @Test
-    public void testSubtraction() {
-        System.out.println("Run testSubtraction. Object hash: " + this.hashCode());
+    public void testSubtraction() throws TestFrResultException {
         DC.setOperation('-');
+        DC.setArgA(50);
+        DC.setArgB(10);
         DC.calculate();
-        //TODO: Как проверять результат?
+        checkResult(DC.getResult(), 40);
     }
 
     @Test
-    public void testMultiplication() {
-        System.out.println("Run testMultiplication. Object hash: " + this.hashCode());
+    public void testMultiplication() throws TestFrResultException {
         DC.setOperation('*');
+        DC.setArgA(50);
+        DC.setArgB(10);
         DC.calculate();
-        //TODO: Как проверять результат?
+        checkResult(DC.getResult(), 500);
     }
 
-/*
     @Test
-    public void testDivision() {
-        System.out.println("Run testDivision. Object hash: " + this.hashCode());
+    public void testDivision1() throws TestFrResultException {
         DC.setOperation('/');
+        DC.setArgA(5);
+        DC.setArgB(1);
         DC.calculate();
-        //TODO: Как проверять результат?
+        checkResult(DC.getResult(), 5);
     }
-*/
+
+    @Test
+    public void testDivision2() throws TestFrResultException {
+        DC.setOperation('/');
+        DC.setArgA(5);
+        DC.setArgB(2);
+        DC.calculate();
+        checkResult(DC.getResult(), 3);
+    }
+
+    @Test
+    public void testDivision3() throws TestFrResultException {
+        DC.setOperation('/');
+        DC.setArgA(5);
+        DC.setArgB(0);
+        DC.calculate();
+        checkResult(DC.getResult(), 5);
+    }
+
+    @Test
+    public void testUnsupportedOp() throws TestFrResultException {
+        DC.setOperation('%');
+        DC.calculate();
+        checkResult(DC.getResult(), 5);
+    }
+
+    @Test
+    public void testName() throws TestFrResultException {
+        checkResult(DC.getOpName(), "Test case");
+    }
 
     @After
     public void tearDown() {
-        System.out.println("Run tearDown. Object hash: " + this.hashCode());
-
+        System.out.println("Тест выполнен: " + this.hashCode());
     }
 }

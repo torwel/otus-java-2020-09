@@ -39,7 +39,6 @@ public class DemoClass {
     }
 
     public int getResult() {
-        //TODO: Сделать проверку производилось ли вычисление.
         return result;
     }
 
@@ -54,9 +53,9 @@ public class DemoClass {
             case '*':
                 result = argA * argB;
                 break;
-//            case '/':
-//                result = argA / argB;
-//                break;
+            case '/':
+                result = argA / argB;
+                break;
             default:
                 throw new UnsupportedOperationException();
         }
@@ -64,7 +63,6 @@ public class DemoClass {
 
     @Override
     public String toString() {
-        //TODO: Сделать проверку производилось ли вычисление.
         return String.format("%s \n[ %d + %d = %d ]", opName, argA, argB, result);
     }
 
