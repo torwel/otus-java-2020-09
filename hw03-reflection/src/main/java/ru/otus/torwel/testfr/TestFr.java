@@ -1,6 +1,5 @@
 package ru.otus.torwel.testfr;
 
-import ru.otus.torwel.TestThis;
 import ru.otus.torwel.testfr.annotations.After;
 import ru.otus.torwel.testfr.annotations.Before;
 import ru.otus.torwel.testfr.annotations.Test;
@@ -28,7 +27,7 @@ public class TestFr {
      *              наборы для тестирования
      */
 
-    public static void launchTest(Class<TestThis>  clazz) {
+    public static void launchTest(Class<?>  clazz) {
 
         Method[] methods = clazz.getDeclaredMethods();
 
@@ -56,7 +55,7 @@ public class TestFr {
         // и на нем выполняем набор тестов
         for (List<Method> testList : execPlan) {
             try {
-                final TestThis testObj = clazz.getConstructor().newInstance();
+                final Object testObj = clazz.getConstructor().newInstance();
                 for (Method method : testList) {
                     try {
                         method.invoke(testObj);
@@ -122,6 +121,8 @@ public class TestFr {
         System.out.println("Total performed tests: " + (countPassedTests + countFailedTests));
         System.out.println("Tests passed: " + countPassedTests);
         System.out.println("Tests failed: " + countFailedTests);
+        countPassedTests = 0;
+        countFailedTests = 0;
     }
 
 }

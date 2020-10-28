@@ -6,7 +6,16 @@ import static ru.otus.torwel.testfr.TestFr.*;
 public class Launch {
 
     public static void main(String[] args) {
+        System.out.println("\nRun tests for class TestThis...\n");
         launchTest(TestThis.class);
+
+        System.out.println("\nRun tests for class DemoClassTest...\n");
+        launchTest(DemoClassTest.class);
+
+        System.out.println("\nRun tests for class IntegerTest...\n");
+        launchTest(IntegerTest.class);
+
+
 //        debugDC();
     }
 

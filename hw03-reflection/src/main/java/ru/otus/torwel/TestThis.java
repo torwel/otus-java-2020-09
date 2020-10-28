@@ -21,7 +21,7 @@ public class TestThis {
 
     @Before
     public void setSomething() {
-        System.out.println("Тест обекта: " + this.hashCode());
+        System.out.println("Тест обекта: " + DC.hashCode());
     }
 
     @Before
@@ -98,6 +98,6 @@ public class TestThis {
 
     @After
     public void tearDown() {
-        System.out.println("Тест выполнен: " + this.hashCode());
+        System.out.println("Тест выполнен: " + DC.hashCode());
     }
 }
