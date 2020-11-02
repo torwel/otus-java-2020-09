@@ -17,12 +17,19 @@ public class Benchmark implements BenchmarkMBean {
         for (int idx = 0; idx < loopCounter; idx++) {
             int local = size;
 
+            System.out.println("Creating objects...");
             for (int i = 0; i < local; i++) {
                 list.add(new String(new char[0]));
+//                if (i % 1000 == 0)
+//                    System.out.println("add " + i);
             }
 
-            for (int i = 0; i < local; i++) {
-                if (1 == i % 2) list.remove(i);
+            System.out.println("Removing objects...");
+            var lstSize = list.size();
+            for (int i = lstSize - 1; i >= lstSize - local/4*3; i--) {
+                list.remove(i);
+//                if (i % 1000 == 0)
+//                    System.out.println("remove " + i);
             }
 
 /*
@@ -32,7 +39,7 @@ public class Benchmark implements BenchmarkMBean {
             }
 */
 
-            System.out.println("loop: " + idx);
+            System.out.println("loop: " + idx + "\tlstSize: " + lstSize);
             Thread.sleep(10); //Label_1
         }
     }

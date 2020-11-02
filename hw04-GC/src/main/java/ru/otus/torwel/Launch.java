@@ -11,8 +11,8 @@ public class Launch {
 //        switchOnMonitoring();
         long beginTime = System.currentTimeMillis();
 
-        int size = 5 * 1000 * 1000;
-        int loopCounter = 1000;
+        int size = 50_000;
+        int loopCounter = 10000;
         //int loopCounter = 100000;
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         ObjectName name = new ObjectName("ru.otus:type=Benchmark");
