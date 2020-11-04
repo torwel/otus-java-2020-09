@@ -16,18 +16,16 @@ public class BenchmarkMonitor implements NotificationListener {
         if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
             GarbageCollectionNotificationInfo info = GarbageCollectionNotificationInfo.from((CompositeData) notification.getUserData());
 
-/*
             String gcName = info.getGcName();
             String gcAction = info.getGcAction();
             String gcCause = info.getGcCause();
-*/
 
-//            long startTime = info.getGcInfo().getStartTime();
+            long startTime = info.getGcInfo().getStartTime();
             long duration = info.getGcInfo().getDuration();
             setMaxDurationSTW(duration);
             totalDurationSTW = totalDurationSTW + duration;
 
-//            System.out.println("start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
+            System.out.println("start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
         }
     }
 

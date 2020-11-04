@@ -3,10 +3,13 @@ package ru.otus.torwel;
 import javax.management.*;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.util.logging.Logger;
 
 public class Launch {
 
-    final private static BenchmarkMonitor listener = new BenchmarkMonitor();
+    final private static Logger logger = Logger.getLogger("GC tester");
+
+    protected final static BenchmarkMonitor listener = new BenchmarkMonitor();
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting pid: " + ManagementFactory.getRuntimeMXBean().getName());
@@ -41,7 +44,7 @@ public class Launch {
     }
 
 
-    private static void startGCMonitoring() {
+    private static void stopGCMonitoring() {
         for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
             System.out.println("GC name:" + gcbean.getName());
             try {
@@ -52,7 +55,7 @@ public class Launch {
         }
     }
 
-    private static void stopGCMonitoring() {
+    private static void startGCMonitoring() {
         for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
             NotificationEmitter emitter = (NotificationEmitter) gcbean;
             emitter.addNotificationListener(listener, null, null);
