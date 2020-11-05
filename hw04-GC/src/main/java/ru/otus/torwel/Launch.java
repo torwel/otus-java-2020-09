@@ -1,19 +1,27 @@
 package ru.otus.torwel;
 
+import com.sun.management.GarbageCollectionNotificationInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javax.management.*;
+import javax.management.openmbean.CompositeData;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 public class Launch {
 
-    final private static Logger logger = Logger.getLogger("GC tester");
+    private static final Logger logger = LogManager.getLogger();
 
-    protected final static BenchmarkMonitor listener = new BenchmarkMonitor();
+    private static final BenchmarkMonitor listener = new BenchmarkMonitor();
+
+    private static final String REPORT_MAX_DURARION_STW = "Maximum duration STW: ";
+    private static final String REPORT_TOTAL_DURARION_STWS = "Total duration STWs: ";
+
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting pid: " + ManagementFactory.getRuntimeMXBean().getName());
-
         startGCMonitoring();
 
         long beginTime = System.currentTimeMillis();
@@ -31,17 +39,18 @@ public class Launch {
         try {
             mbean.run();
         } finally {
-//            System.out.println("Maximum duration STW: " + listener.getMaxDurationSTW());
-//            System.out.println("Total duration STWs: " + listener.getTotalDurationSTW());
+            System.out.print(REPORT_MAX_DURARION_STW);
             System.out.println(listener.getMaxDurationSTW());
+
+            System.out.print(REPORT_TOTAL_DURARION_STWS);
             System.out.println(listener.getTotalDurationSTW());
         }
 
 
         System.out.println("time:" + (System.currentTimeMillis() - beginTime) / 1000);
-
-
     }
+
+
 
 
     private static void stopGCMonitoring() {
@@ -62,5 +71,43 @@ public class Launch {
         }
     }
 
+    public static class BenchmarkMonitor implements NotificationListener {
 
+        private long maxDurationSTW;
+        private long totalDurationSTW;
+
+        @Override
+        public void handleNotification(Notification notification, Object handback) {
+            if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
+                GarbageCollectionNotificationInfo info = GarbageCollectionNotificationInfo.from((CompositeData) notification.getUserData());
+
+                String gcName = info.getGcName();
+                String gcAction = info.getGcAction();
+                String gcCause = info.getGcCause();
+
+                long startTime = info.getGcInfo().getStartTime();
+                long duration = info.getGcInfo().getDuration();
+                setMaxDurationSTW(duration);
+                totalDurationSTW = totalDurationSTW + duration;
+
+                logger.info("LOG. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
+                System.out.println("SOUT. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
+//                System.out.println("Maximum duration STW: " + listener.getMaxDurationSTW());
+//                System.out.println("Total duration STWs: " + listener.getTotalDurationSTW());
+            }
+        }
+
+        public long getMaxDurationSTW() {
+            return maxDurationSTW;
+        }
+
+        public long getTotalDurationSTW() {
+            return totalDurationSTW;
+        }
+
+        private void setMaxDurationSTW(long currentDuration) {
+            if (currentDuration > maxDurationSTW)
+                maxDurationSTW = currentDuration;
+        };
+    }
 }
