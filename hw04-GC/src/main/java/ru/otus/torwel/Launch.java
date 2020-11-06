@@ -1,8 +1,8 @@
 package ru.otus.torwel;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -12,7 +12,7 @@ import java.lang.management.ManagementFactory;
 
 public class Launch {
 
-    private static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LoggerFactory.getLogger(Launch.class);
 
     private static final BenchmarkMonitor listener = new BenchmarkMonitor();
 
@@ -39,11 +39,12 @@ public class Launch {
         try {
             mbean.run();
         } finally {
-            System.out.print(REPORT_MAX_DURARION_STW);
-            System.out.println(listener.getMaxDurationSTW());
+            logger.debug(REPORT_MAX_DURARION_STW);
+            logger.debug(String.valueOf(listener.getMaxDurationSTW()));
 
-            System.out.print(REPORT_TOTAL_DURARION_STWS);
-            System.out.println(listener.getTotalDurationSTW());
+            logger.debug(REPORT_TOTAL_DURARION_STWS);
+            logger.debug(String.valueOf(listener.getTotalDurationSTW()));
+
         }
 
 
@@ -65,6 +66,7 @@ public class Launch {
     }
 
     private static void startGCMonitoring() {
+        logger.info("duration;maxDuration");
         for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
             NotificationEmitter emitter = (NotificationEmitter) gcbean;
             emitter.addNotificationListener(listener, null, null);
@@ -90,8 +92,9 @@ public class Launch {
                 setMaxDurationSTW(duration);
                 totalDurationSTW = totalDurationSTW + duration;
 
-                logger.info("LOG. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
-                System.out.println("SOUT. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
+                logger.info("{};{}", duration, maxDurationSTW);
+                logger.debug("LOG. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
+//                System.out.println("SOUT. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
 //                System.out.println("Maximum duration STW: " + listener.getMaxDurationSTW());
 //                System.out.println("Total duration STWs: " + listener.getTotalDurationSTW());
             }

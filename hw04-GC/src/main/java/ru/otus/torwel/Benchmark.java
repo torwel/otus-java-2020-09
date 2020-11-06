@@ -33,7 +33,7 @@ public class Benchmark implements BenchmarkMBean {
             }
 
 
-//            System.out.println("loop: " + idx + "\tlstSize: " + lstSize);
+            System.out.println("loop: " + idx + "\tlstSize: " + lstSize);
             Thread.sleep(10); //Label_1
         }
     }
