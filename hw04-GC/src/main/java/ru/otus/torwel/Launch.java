@@ -8,6 +8,9 @@ import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
+import java.text.SimpleDateFormat;
+import java.util.Map;
 //import java.util.logging.Logger;
 
 public class Launch {
@@ -22,9 +25,12 @@ public class Launch {
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting pid: " + ManagementFactory.getRuntimeMXBean().getName());
-        startGCMonitoring();
 
         long beginTime = System.currentTimeMillis();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+        logger.info("application starts at {}", sdf.format(beginTime));
+
+        startGCMonitoring();
 
         int size = 50_000;
         int loopCounter = 10000;
@@ -39,20 +45,12 @@ public class Launch {
         try {
             mbean.run();
         } finally {
-            logger.debug(REPORT_MAX_DURARION_STW);
-            logger.debug(String.valueOf(listener.getMaxDurationSTW()));
-
-            logger.debug(REPORT_TOTAL_DURARION_STWS);
-            logger.debug(String.valueOf(listener.getTotalDurationSTW()));
-
+            logger.debug(REPORT_MAX_DURARION_STW + listener.getMaxDurationSTW());
+            logger.debug(REPORT_TOTAL_DURARION_STWS + listener.getTotalDurationSTW());
+            logger.debug("work time: {} millis", (System.currentTimeMillis() - beginTime));
         }
 
-
-        System.out.println("time:" + (System.currentTimeMillis() - beginTime) / 1000);
     }
-
-
-
 
     private static void stopGCMonitoring() {
         for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
@@ -66,7 +64,7 @@ public class Launch {
     }
 
     private static void startGCMonitoring() {
-        logger.info("duration;maxDuration");
+        logger.info("startTime;duration;maxDuration;gcCause;gcName;gcAction");
         for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
             NotificationEmitter emitter = (NotificationEmitter) gcbean;
             emitter.addNotificationListener(listener, null, null);
@@ -75,8 +73,8 @@ public class Launch {
 
     public static class BenchmarkMonitor implements NotificationListener {
 
-        private long maxDurationSTW;
-        private long totalDurationSTW;
+        private volatile long maxDurationSTW;
+        private volatile long totalDurationSTW;
 
         @Override
         public void handleNotification(Notification notification, Object handback) {
@@ -92,11 +90,34 @@ public class Launch {
                 setMaxDurationSTW(duration);
                 totalDurationSTW = totalDurationSTW + duration;
 
-                logger.info("{};{}", duration, maxDurationSTW);
-                logger.debug("LOG. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
-//                System.out.println("SOUT. start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
-//                System.out.println("Maximum duration STW: " + listener.getMaxDurationSTW());
-//                System.out.println("Total duration STWs: " + listener.getTotalDurationSTW());
+                Map<String, MemoryUsage> memBefore = info.getGcInfo().getMemoryUsageBeforeGc();
+                Map<String, MemoryUsage> memAfter = info.getGcInfo().getMemoryUsageAfterGc();
+                for (Map.Entry<String, MemoryUsage> entry : memAfter.entrySet()) {
+                    String name = entry.getKey();
+                    MemoryUsage memdetail = entry.getValue();
+                    long memInit = memdetail.getInit();
+                    long memCommitted = memdetail.getCommitted();
+                    long memMax = memdetail.getMax();
+                    long memUsed = memdetail.getUsed();
+                    MemoryUsage before = memBefore.get(name);
+
+/*
+                    var beforeCommited = before.getCommitted();
+                    long beforepercent = 0;
+                    long percent = 0; //>100% when it gets expanded
+                    if (beforeCommited > 0) {
+                        beforepercent = ((before.getUsed() * 1000L) / beforeCommited);
+                        percent = ((memUsed * 1000L) / beforeCommited); //>100% when it gets expanded
+                    }
+*/
+                    long beforepercent = ((before.getUsed()*1000L)/before.getCommitted());
+                    long percent = ((memUsed*1000L)/before.getCommitted()); //>100% when it gets expanded
+                    System.out.print(name + (memCommitted==memMax?"(fully expanded)":"(still expandable)") +"used: "+(beforepercent/10)+"."+(beforepercent%10)+"%->"+(percent/10)+"."+(percent%10)+"%("+((memUsed/1048576)+1)+"MB)\n");
+                }
+
+
+                logger.info("{};{};{};{};{};{}", startTime, duration, maxDurationSTW, gcCause, gcName, gcAction);
+                logger.debug("start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
             }
         }
 

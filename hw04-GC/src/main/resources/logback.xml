@@ -1,64 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <timestamp key="bySecond" datePattern="yyyyMMdd_HHmmss"/>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- encoders are assigned the type
-             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
             <pattern>%d{HH:mm:ss.SSSS} %-5level - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="FILE_INFO" class="ch.qos.logback.core.FileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>INFO</level>
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-        <file>./hw04-GC/logs/statlog.log</file>
-        <rollingPolicy
-                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>statlog.%d{yyyy-MM-dd}.log</fileNamePattern>
-
-            <!-- Храним файлы логов 10 дней -->
-            <maxHistory>10</maxHistory>
-
-            <!-- Максимальный размер файлов лога 30 гигабайт -->
-            <totalSizeCap>10GB</totalSizeCap>
-
-        </rollingPolicy>
+        <file>./logs/hw04-GC/statlog_${bySecond}.csv</file>
+        <append>true</append>
         <encoder>
             <pattern>%msg%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="FILE_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="FILE_DEBUG" class="ch.qos.logback.core.FileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>DEBUG</level>
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-        <file>./hw04-GC/logs/debuglog.log</file>
-        <rollingPolicy
-                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>debuglog.%d{yyyy-MM-dd}.log</fileNamePattern>
-
-            <!-- Храним файлы логов 10 дней -->
-            <maxHistory>10</maxHistory>
-
-            <!-- Максимальный размер файлов лога 30 гигабайт -->
-            <totalSizeCap>10GB</totalSizeCap>
-
-        </rollingPolicy>
+        <file>./logs/hw04-GC/debuglog_${bySecond}.log</file>
+        <append>true</append>
         <encoder>
-            <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} [%thread] %-5level  %logger{20} - %msg%n</pattern>
+            <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} [%thread] - %msg%n</pattern>
         </encoder>
     </appender>
 
     <root level="debug">
-        <appender-ref ref="STDOUT" />
+<!--        <appender-ref ref="STDOUT" />-->
         <appender-ref ref="FILE_INFO" />
         <appender-ref ref="FILE_DEBUG" />
     </root>
