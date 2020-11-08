@@ -8,9 +8,7 @@ import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.lang.management.*;
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 //import java.util.logging.Logger;
 
 public class Launch {
@@ -63,8 +61,14 @@ public class Launch {
         }
     }
 
+
+    // TODO: Добавить usedMemory Before, usedMemory After, commitedMemory Before, commitedMemory After
+    // TODO: Возможно добавить изменение обоих типов памяти
     private static void startGCMonitoring() {
-        logger.info("GC start time;GC duration;gcCause;gcName;gcAction");
+        logger.info("GC start time;GC duration;" +
+                "usedMemory Before;usedMemory After;" +
+                "commitedMemory Before;commitedMemory After;" +
+                "gcCause;gcName;gcAction");
         for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
             NotificationEmitter emitter = (NotificationEmitter) gcbean;
             emitter.addNotificationListener(listener, null, null);
@@ -90,65 +94,72 @@ public class Launch {
 //                setMaxDurationSTW(duration);
 //                totalDurationSTW += duration;
 
-/*
-                Map<String, MemoryUsage> memBefore = info.getGcInfo().getMemoryUsageBeforeGc();
-                Map<String, MemoryUsage> memAfter = info.getGcInfo().getMemoryUsageAfterGc();
-                for (Map.Entry<String, MemoryUsage> entry : memAfter.entrySet()) {
-                    String memType = entry.getKey();
-                    MemoryUsage memdetail = entry.getValue();
-                    long memInit = memdetail.getInit();
-                    long memCommitted = memdetail.getCommitted();
-                    long memMax = memdetail.getMax();
-                    long memUsed = memdetail.getUsed();
-                    MemoryUsage before = memBefore.get(memType);
-                    long beforepercent = ((before.getUsed()*1000L)/before.getCommitted());
-                    long percent = ((memUsed*1000L)/before.getCommitted()); //>100% when it gets expanded
-                    System.out.print(memType + (memCommitted==memMax?"(fully expanded)":"(still expandable)") +"used: "+(beforepercent/10)+"."+(beforepercent%10)+"%->"+(percent/10)+"."+(percent%10)+"%("+((memUsed/1048576)+1)+"MB)\n");
-                }
-*/
+                long usedMemoryBefore = 0;
+                long usedMemoryAfter = 0;
+                long commitedMemoryBefore = 0;
+                long commitedMemoryAfter = 0;
 
+                List<String> listHeapMemTypes = new ArrayList<>();
                 for(MemoryPoolMXBean mBean: ManagementFactory.getMemoryPoolMXBeans()) {
-                    System.out.println(mBean.getName() + " - " + mBean.getType());
                     //TODO: Здесь составляем список mem с типами памяти MemoryType.HEAP
+                    if (mBean.getType() == MemoryType.HEAP) {
+                        listHeapMemTypes.add(mBean.getName());
+//                        System.out.println(mBean.getName() + " - " + mBean.getType());
                     }
-                System.out.println();
+                }
 
-                // TODO: Далее для mapBefore и mapAfter посчитать сумму память HEAP типов
+                // TODO: Далее для mapBefore и mapAfter посчитать сумму памяти HEAP типов
                 // и вывести в лог в нужном формате
 
-                Map mapBefore = info.getGcInfo().getMemoryUsageBeforeGc();
-                Map mapAfter = info.getGcInfo().getMemoryUsageAfterGc();
-                System.out.println("Before GC Memory Usage Details....");
-                Set memType = mapBefore.keySet();
-                Iterator it = memType.iterator();
-                while(it.hasNext()) {
-                    String type = (String)it.next();
-                    System.out.println(type);
-                    MemoryUsage mu1 = (MemoryUsage) mapBefore.get(type);
-                    System.out.print("Initial Size: "+mu1.getInit());
-                    System.out.print(" Used: "+ mu1.getUsed());
-                    System.out.print(" Max: "+mu1.getMax());
-                    System.out.print(" Committed: "+mu1.getCommitted());
-                    System.out.println("");
-                }
-                System.out.println();
-                System.out.println("After GC Memory Usage Details....");
-                memType = mapAfter.keySet();
-                it = memType.iterator();
-                while(it.hasNext()) {
-                    String type = (String)it.next();
-                    System.out.println(type);
-                    MemoryUsage mu2 = (MemoryUsage) mapAfter.get(type);
-                    System.out.print("Initial Size: "+mu2.getInit());
-                    System.out.print(" Used: "+ mu2.getUsed());
-                    System.out.print(" Max: "+mu2.getMax());
-                    System.out.print(" Committed: "+mu2.getCommitted());
-                    System.out.println("");
-                }
-                System.out.println();
+                Map<String, MemoryUsage> mapBefore = info.getGcInfo().getMemoryUsageBeforeGc();
+                for (Map.Entry<String, MemoryUsage> entry : mapBefore.entrySet()) {
+                    String memTypeName = entry.getKey();
+                    if (!listHeapMemTypes.contains(memTypeName))
+                        continue;
+                    MemoryUsage memoryUsage = mapBefore.get(memTypeName);
+                    usedMemoryBefore += memoryUsage.getUsed();
+                    commitedMemoryBefore += memoryUsage.getCommitted();
 
-                logger.info("{};{};{};{};{}", startTime, duration, gcCause, gcName, gcAction);
-                logger.debug("start:" + startTime + " Name:" + gcName + ", action:" + gcAction + ", gcCause:" + gcCause + "(" + duration + " ms)");
+//                    System.out.print("Memory type: " + memTypeName);
+//                    System.out.print(" Initial Size: " + memoryUsage.getInit());
+//                    System.out.print(" Used: " + memoryUsage.getUsed());
+//                    System.out.print(" Max: " + memoryUsage.getMax());
+//                    System.out.print(" Committed: " + memoryUsage.getCommitted());
+//                    System.out.println();
+                }
+
+                Map<String, MemoryUsage> mapAfter = info.getGcInfo().getMemoryUsageAfterGc();
+                for (Map.Entry<String, MemoryUsage> entry : mapAfter.entrySet()) {
+                    String memTypeName = entry.getKey();
+                    if (!listHeapMemTypes.contains(memTypeName))
+                        continue;
+                    MemoryUsage memoryUsage = mapAfter.get(memTypeName);
+                    usedMemoryAfter += memoryUsage.getUsed();
+                    commitedMemoryAfter += memoryUsage.getCommitted();
+
+//                    System.out.print("Memory type: " + memTypeName);
+//                    System.out.print(" Initial Size: " + memoryUsage.getInit());
+//                    System.out.print(" Used: " + memoryUsage.getUsed());
+//                    System.out.print(" Max: " + memoryUsage.getMax());
+//                    System.out.print(" Committed: " + memoryUsage.getCommitted());
+//                    System.out.println();
+                }
+
+                logger.info("{};{};{};{};{};{};{};{};{}",
+                        startTime,
+                        duration,
+                        usedMemoryBefore  / 1024 / 1024,
+                        usedMemoryAfter / 1024 / 1024,
+                        commitedMemoryBefore / 1024 / 1024,
+                        commitedMemoryAfter / 1024 / 1024,
+                        gcCause,
+                        gcName,
+                        gcAction);
+                logger.debug("start:" + startTime +
+                        " Name:" + gcName +
+                        ", action:" + gcAction +
+                        ", gcCause:" + gcCause +
+                        "(" + duration + " ms)");
             }
         }
 
