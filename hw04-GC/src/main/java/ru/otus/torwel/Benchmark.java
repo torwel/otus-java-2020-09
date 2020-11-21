@@ -11,7 +11,7 @@ public class Benchmark implements BenchmarkMBean {
         this.loopCounter = loopCounter;
     }
 
-    void run() {
+    void run() throws InterruptedException {
         List<String[]> list = new LinkedList<>();
 
         for (int idx = 0; idx < loopCounter; idx++) {
@@ -37,7 +37,7 @@ public class Benchmark implements BenchmarkMBean {
                 countDels++;
             }
             System.out.println("loop: " + idx + "\tlstSize: " + list.size() + "\tdeleted elements: " + countDels);
-//            Thread.sleep(5); //Label_1: use for 256M test
+            Thread.sleep(5); //Label_1: use for 256M test
         }
     }
 

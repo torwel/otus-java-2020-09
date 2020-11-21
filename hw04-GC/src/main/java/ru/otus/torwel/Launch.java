@@ -25,9 +25,9 @@ public class Launch {
 
         startGCMonitoring();
 
-//        int size = 50;   // -Xmx256m
+        int size = 50;   // -Xmx256m
 //        int size = 1000;   // -Xmx8g
-        int size = 2500;   // -Xmx16g
+//        int size = 2500;   // -Xmx16g
 
         int loopCounter = 100_000;
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
