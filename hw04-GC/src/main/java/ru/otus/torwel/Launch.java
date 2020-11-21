@@ -9,17 +9,12 @@ import javax.management.openmbean.CompositeData;
 import java.lang.management.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-//import java.util.logging.Logger;
 
 public class Launch {
 
     private static final Logger logger = LoggerFactory.getLogger(Launch.class);
 
     private static final BenchmarkMonitor listener = new BenchmarkMonitor();
-
-    private static final String REPORT_MAX_DURARION_STW = "Maximum duration STW: ";
-    private static final String REPORT_TOTAL_DURARION_STWS = "Total duration STWs: ";
-
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting pid: " + ManagementFactory.getRuntimeMXBean().getName());
@@ -30,24 +25,29 @@ public class Launch {
 
         startGCMonitoring();
 
-        int size = 50_000;
-        int loopCounter = 20000;
-        //int loopCounter = 100000;
+//        int size = 50;   // -Xmx256m
+//        int size = 1000;   // -Xmx8g
+        int size = 2500;   // -Xmx16g
+
+        int loopCounter = 100_000;
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         ObjectName name = new ObjectName("ru.otus:type=Benchmark");
 
         Benchmark mbean = new Benchmark(loopCounter);
         mbs.registerMBean(mbean, name);
         mbean.setSize(size);
+        mbean.run();
 
-        try {
-            mbean.run();
-        } finally {
-//            logger.debug(REPORT_MAX_DURARION_STW + listener.getMaxDurationSTW());
-//            logger.debug(REPORT_TOTAL_DURARION_STWS + listener.getTotalDurationSTW());
-            logger.debug("work time: {} millis", (System.currentTimeMillis() - beginTime));
+    }
+
+    private static void startGCMonitoring() {
+        logger.info("App start time;App duration;GC start time;GC duration;" +
+                "usedMemory Before;usedMemory After;Released usedMemory;commitedMemory After;" +
+                "gcCause;gcName;gcAction");
+        for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
+            NotificationEmitter emitter = (NotificationEmitter) gcbean;
+            emitter.addNotificationListener(listener, null, null);
         }
-
     }
 
     private static void stopGCMonitoring() {
@@ -61,24 +61,9 @@ public class Launch {
         }
     }
 
+    private static class BenchmarkMonitor implements NotificationListener {
 
-    // TODO: Добавить usedMemory Before, usedMemory After, commitedMemory Before, commitedMemory After
-    // TODO: Возможно добавить изменение обоих типов памяти
-    private static void startGCMonitoring() {
-        logger.info("GC start time;GC duration;" +
-                "usedMemory Before;usedMemory After;" +
-                "commitedMemory Before;commitedMemory After;" +
-                "gcCause;gcName;gcAction");
-        for (GarbageCollectorMXBean gcbean : ManagementFactory.getGarbageCollectorMXBeans()) {
-            NotificationEmitter emitter = (NotificationEmitter) gcbean;
-            emitter.addNotificationListener(listener, null, null);
-        }
-    }
-
-    public static class BenchmarkMonitor implements NotificationListener {
-
-//        private volatile long maxDurationSTW;
-//        private volatile long totalDurationSTW;
+        private volatile long appStartTime = 1;
 
         @Override
         public void handleNotification(Notification notification, Object handback) {
@@ -89,26 +74,21 @@ public class Launch {
                 String gcAction = info.getGcAction();
                 String gcCause = info.getGcCause();
 
-                long startTime = info.getGcInfo().getStartTime();
-                long duration = info.getGcInfo().getDuration();
-//                setMaxDurationSTW(duration);
-//                totalDurationSTW += duration;
-
+                long gcStartTime = info.getGcInfo().getStartTime();
+                long gcDuration = info.getGcInfo().getDuration();
                 long usedMemoryBefore = 0;
                 long usedMemoryAfter = 0;
-                long commitedMemoryBefore = 0;
                 long commitedMemoryAfter = 0;
 
                 List<String> listHeapMemTypes = new ArrayList<>();
                 for(MemoryPoolMXBean mBean: ManagementFactory.getMemoryPoolMXBeans()) {
-                    //TODO: Здесь составляем список mem с типами памяти MemoryType.HEAP
+                    //Здесь составляем список mem с типами памяти MemoryType.HEAP
                     if (mBean.getType() == MemoryType.HEAP) {
                         listHeapMemTypes.add(mBean.getName());
-//                        System.out.println(mBean.getName() + " - " + mBean.getType());
                     }
                 }
 
-                // TODO: Далее для mapBefore и mapAfter посчитать сумму памяти HEAP типов
+                // Далее для mapBefore и mapAfter посчитать сумму памяти HEAP типов
                 // и вывести в лог в нужном формате
 
                 Map<String, MemoryUsage> mapBefore = info.getGcInfo().getMemoryUsageBeforeGc();
@@ -118,14 +98,6 @@ public class Launch {
                         continue;
                     MemoryUsage memoryUsage = mapBefore.get(memTypeName);
                     usedMemoryBefore += memoryUsage.getUsed();
-                    commitedMemoryBefore += memoryUsage.getCommitted();
-
-//                    System.out.print("Memory type: " + memTypeName);
-//                    System.out.print(" Initial Size: " + memoryUsage.getInit());
-//                    System.out.print(" Used: " + memoryUsage.getUsed());
-//                    System.out.print(" Max: " + memoryUsage.getMax());
-//                    System.out.print(" Committed: " + memoryUsage.getCommitted());
-//                    System.out.println();
                 }
 
                 Map<String, MemoryUsage> mapAfter = info.getGcInfo().getMemoryUsageAfterGc();
@@ -136,44 +108,30 @@ public class Launch {
                     MemoryUsage memoryUsage = mapAfter.get(memTypeName);
                     usedMemoryAfter += memoryUsage.getUsed();
                     commitedMemoryAfter += memoryUsage.getCommitted();
-
-//                    System.out.print("Memory type: " + memTypeName);
-//                    System.out.print(" Initial Size: " + memoryUsage.getInit());
-//                    System.out.print(" Used: " + memoryUsage.getUsed());
-//                    System.out.print(" Max: " + memoryUsage.getMax());
-//                    System.out.print(" Committed: " + memoryUsage.getCommitted());
-//                    System.out.println();
                 }
 
-                logger.info("{};{};{};{};{};{};{};{};{}",
-                        startTime,
-                        duration,
+                long usedMemoryReleased = usedMemoryBefore - usedMemoryAfter;
+                long appDuration = gcStartTime - appStartTime;
+                logger.info("{};{};{};{};{};{};{};{};{};{};{}",
+                        appStartTime,
+                        appDuration,
+                        gcStartTime,
+                        gcDuration,
                         usedMemoryBefore  / 1024 / 1024,
                         usedMemoryAfter / 1024 / 1024,
-                        commitedMemoryBefore / 1024 / 1024,
+                        usedMemoryReleased / 1024 / 1024,
                         commitedMemoryAfter / 1024 / 1024,
                         gcCause,
                         gcName,
                         gcAction);
-                logger.debug("start:" + startTime +
+                appStartTime = gcStartTime + gcDuration;
+
+                logger.debug("start:" + gcStartTime +
                         " Name:" + gcName +
                         ", action:" + gcAction +
                         ", gcCause:" + gcCause +
-                        "(" + duration + " ms)");
+                        "(" + gcDuration + " ms)");
             }
         }
-
-//        public long getMaxDurationSTW() {
-//            return maxDurationSTW;
-//        }
-
-//        public long getTotalDurationSTW() {
-//            return totalDurationSTW;
-//        }
-
-//        private void setMaxDurationSTW(long currentDuration) {
-//            if (currentDuration > maxDurationSTW)
-//                maxDurationSTW = currentDuration;
-//        };
     }
 }
