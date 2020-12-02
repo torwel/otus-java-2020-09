@@ -5,6 +5,9 @@
 *.log
 *.csv
 
+# ./logs folder
+logs
+
 # BlueJ files
 *.ctxt
 
