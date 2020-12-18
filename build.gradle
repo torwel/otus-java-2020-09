@@ -8,7 +8,7 @@ plugins {
 
 idea {
     project {
-        languageLevel = 15
+        languageLevel = "15"
     }
     module {
         downloadJavadoc = true
@@ -32,4 +32,8 @@ allprojects {
             dependency("com.google.guava:guava:${Versions.guava}")
         }
     }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
 }

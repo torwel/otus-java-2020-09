@@ -6,6 +6,6 @@ sourceCompatibility = JavaVersion.VERSION_15
 targetCompatibility = JavaVersion.VERSION_15
 
 dependencies {
-    compile 'org.slf4j:slf4j-api'
-    compile 'ch.qos.logback:logback-classic'
+    implementation 'org.slf4j:slf4j-api'
+    implementation 'ch.qos.logback:logback-classic'
 }
