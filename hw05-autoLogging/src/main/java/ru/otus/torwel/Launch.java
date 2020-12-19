@@ -4,7 +4,7 @@ public class Launch {
 
     public static void main(String[] args) {
         // Количество  циклов тестирования
-        int testCount = 10000;
+        int testCount = 100000;
 
         // Здесь начинаем тестирование оригинального объекта
         final long checkpoint1 = System.nanoTime();

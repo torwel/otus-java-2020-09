@@ -156,4 +156,17 @@ public class StrongBox {
         }
         return count;
     }
+
+    /**
+     * Метод возвращает сумму банкнот, содержащихся в кассетах сейфа.
+     *
+     * @return сумму банкнот сейфа
+     */
+    public int getBalance() {
+        int balance = 0;
+        for (Cassette cas : cassettes) {
+            balance = balance + cas.getBalance();
+        }
+        return balance;
+    }
 }
