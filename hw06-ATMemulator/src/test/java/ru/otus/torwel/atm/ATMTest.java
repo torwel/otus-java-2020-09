@@ -1,76 +1,59 @@
 package ru.otus.torwel.atm;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ATMTest {
 
-    private ATM atm;
-
-    @BeforeEach
-    void setUp() {
-    }
+    ATM atm;
 
     @Test
-    void common() {
-        var strongBox = new StrongBox(new ArrayList<Cassette>());
-        Cassette cas10 = new CassetteImpl("Десяточки");
-        strongBox.addCassette(cas10);
+    void commonTest() {
+        atm = new ATMImpl(new ArrayList<>());
 
-        assertThrows(UnsupportedOperationException.class,
-                () -> strongBox.placeBanknote(new Banknote(CurrencyDenomination.TEN, "")),
-                "Unable to place banknote. Received denomination is null.");
+        // Пустой банкомат. Баланс 0
+        int balance = atm.getBalance();
+        assertEquals(0, balance);
 
-        cas10.setCassetteDenomination(CurrencyDenomination.TEN);
-        assertDoesNotThrow(() -> strongBox.placeBanknote(new Banknote(CurrencyDenomination.TEN, "")));
-    }
-
-
-    // Пытаемся забрать больше банкнот, чем есть. Тест пройден, если было выкинуто исключение.
-    @Test
-    void withdrawCash() {
-
-        // Создаем сейф, создаем кассеты. Наполняем наличкой.
-        var strongBox = new StrongBox(new ArrayList<Cassette>());
-        strongBox.addCassette(createCassette(CurrencyDenomination.TEN,3));
-        strongBox.addCassette(createCassette(CurrencyDenomination.FIFTY,3));
-        strongBox.addCassette(createCassette(CurrencyDenomination.ONE_HUNDRED,3));
-        strongBox.addCassette(createCassette(CurrencyDenomination.FIVE_HUNDREDS,3));
-        strongBox.addCassette(createCassette(CurrencyDenomination.ONE_THOUSAND,3));
-
-        atm = new ATM(strongBox);
-
-        assertThrows(IllegalStateException.class,
-                () -> {
-                    for (int i = 0; i < 4; i++) {
-                        System.out.printf("Снятие N: %d\n", +i + 1);
-                        System.out.println(atm.withdrawCash(1660));
-                    }
-                },
-                "Unable to dispense cash. Not enough banknotes.");
-    }
-
-    // Метод создает кассету указанного номинала, и заполняет
-    // указанным количеством банкнот
-    private Cassette createCassette(CurrencyDenomination cd, int count) {
-        var cassette = new CassetteImpl(cd.name(), cd);
-        cassette.placeBanknotes(createPack(cd,count));
-        return cassette;
-    }
-
-    // метод создает список банкнот указанного номинала и количества
-    private List<Banknote> createPack(CurrencyDenomination cd, int count) {
-        List<Banknote> pack = new ArrayList<>();
-        int numTemplate = cd.getDenomination() * 10000;
-        for (int i = 1; i <= count; i++) {
-            String number = String.format("SN %09d", numTemplate + i);
-            pack.add(new Banknote(cd, number));
+        // Добавляем в банкомат кассеты для хранения банкнот
+        // Используем все доступные номиналы
+        for (CurrencyDignity dig : CurrencyDignity.values()) {
+            atm.addCassette(new CassetteImpl("", dig));
         }
-        return pack;
+
+        // Добавляем банкноту. Баланс 1000
+        atm.placeBanknote(new BanknoteImpl(CurrencyDignity.ONE_THOUSAND, ""));
+        balance = atm.getBalance();
+        assertEquals(1000, balance);
+
+        // Добавляем все до
+        int count = 2;
+        for (CurrencyDignity dig : CurrencyDignity.values()) {
+            for (int i = 0; i < count; i++ ) {
+                atm.placeBanknote(new BanknoteImpl(dig, ""));
+            }
+        }
+        balance = atm.getBalance();
+        assertEquals(18720, balance);
+
+
+        // Далее снимаем суммы денег, в консоль выводим список банкнот
+
+        System.out.println(atm.withdrawCash(12550));
+        balance = atm.getBalance();
+        System.out.println("Баланс: " + balance);
+
+        System.out.println(atm.withdrawCash(6160));
+        balance = atm.getBalance();
+        System.out.println("Баланс: " + balance);
+
+
+        // Пытаемся превысить денежный лимит банкомата
+        // Должны получить исключение
+        assertThrows(IllegalStateException.class, () -> atm.withdrawCash(20));
     }
+
 }

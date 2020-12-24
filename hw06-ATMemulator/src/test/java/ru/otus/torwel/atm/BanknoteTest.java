@@ -10,18 +10,18 @@ class BanknoteTest {
 
     @BeforeEach
     void setUp() {
-        banknote = new Banknote(CurrencyDenomination.FIVE_THOUSANDS, "SN1550");
+        banknote = new BanknoteImpl(CurrencyDignity.FIVE_THOUSANDS, "SN1550");
     }
 
     @Test
     void objectsEquals() {
-        var expectedB = new Banknote(CurrencyDenomination.FIVE_THOUSANDS, "SN1550");
+        var expectedB = new BanknoteImpl(CurrencyDignity.FIVE_THOUSANDS, "SN1550");
         assertNotSame(expectedB, banknote);
         assertEquals(expectedB, banknote);
     }
 
     @Test
     void getterWorks() {
-        assertEquals(CurrencyDenomination.FIVE_THOUSANDS, banknote.getDenomination());
+        assertEquals(CurrencyDignity.FIVE_THOUSANDS, banknote.getDignity());
     }
 }

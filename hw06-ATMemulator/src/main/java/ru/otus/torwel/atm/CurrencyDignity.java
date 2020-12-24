@@ -1,6 +1,6 @@
 package ru.otus.torwel.atm;
 
-public enum CurrencyDenomination {
+public enum CurrencyDignity {
     TEN(10),
     FIFTY(50),
     ONE_HUNDRED(100),
@@ -10,14 +10,14 @@ public enum CurrencyDenomination {
     TWO_THOUSANDS(2000),
     FIVE_THOUSANDS(5000);
 
-    private final int denomination;
+    private final int dignity;
 
 
-    CurrencyDenomination(int denomination) {
-        this.denomination = denomination;
+    CurrencyDignity(int dignity) {
+        this.dignity = dignity;
     }
 
-    public int getDenomination() {
-        return denomination;
+    public int getDignity() {
+        return dignity;
     }
 }
