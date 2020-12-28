@@ -20,13 +20,13 @@ public class CassetteImpl implements Cassette {
      * кассете. Если содержит {@code null}, то нельзя добавлять банкноты.
      * Нельзя изменить достоинство, если кассета уже содержит банкноты.
      */
-    private CurrencyDignity currencyDignity;
+    private final CurrencyDignity currencyDignity;
 
 
     /**
      * Содержит список банкнот, помещенных в кассету.
      */
-    private List<Banknote> banknotes;
+    private final List<Banknote> banknotes;
 
 
     /**
@@ -72,23 +72,6 @@ public class CassetteImpl implements Cassette {
     public CurrencyDignity getCassetteDignity() {
         return currencyDignity;
     }
-
-
-//    /**
-//     * изменяет значение переменной, позволяющей хранить банкноты определенного
-//     * достоинства в кассете. Если кассета уже содержит банкноты, изменять
-//     * переменную нельзя.
-//     *
-//     * @param dignity новое значение достоинства.
-//     * @throws IllegalStateException, если кассета уже содержит банкноты.
-//     */
-//    public void setCassetteDignity(CurrencyDignity dignity) {
-//        if (!isEmpty()) {
-//            throw new IllegalStateException("Unable to set cassette dignity. " +
-//                    " Cassette is not empty");
-//        }
-//        this.currencyDignity = dignity;
-//    }
 
 
     /**
