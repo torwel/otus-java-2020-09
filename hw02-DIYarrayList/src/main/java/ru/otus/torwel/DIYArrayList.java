@@ -218,7 +218,7 @@ public class DIYArrayList<T> implements List<T> {
     /**
      * Вычисляет новую длину массива для элементов списка на основе значений
      * текущей длины, предпочитаемого прироста и минимального прироста.
-     * Из предпочитаемого и минимального прироста выбирается максимальное
+     * из предпочитаемого и минимального прироста выбирается максимальное
      * значение и используется для вычисления.
      *
      * @param oldLength   значение текущей длины массива (не отрицательное)
@@ -455,6 +455,7 @@ public class DIYArrayList<T> implements List<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void sort(Comparator<? super T> c) {
         final int expectedModCount = modCount;
