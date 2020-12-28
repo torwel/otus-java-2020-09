@@ -7,12 +7,12 @@ public class BanknoteImpl implements Banknote {
     /**
      * Достоинство банкноты.
      */
-    CurrencyDignity dignity;
+    private final CurrencyDignity dignity;
 
     /**
      * Номер банкноты.
      */
-    private String number;
+    private final String number;
 
     /**
      * Создание банкноты

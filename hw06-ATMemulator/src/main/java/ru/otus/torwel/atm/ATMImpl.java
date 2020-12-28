@@ -14,7 +14,7 @@ import java.util.*;
  */
 
 public class ATMImpl implements ATM {
-    private List<Cassette> strongBox;
+    private final List<Cassette> strongBox;
 
     /**
      * Конструктор банкомата.
