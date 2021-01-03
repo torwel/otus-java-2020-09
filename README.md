@@ -9,7 +9,7 @@
 
 ---
 
-#### Содержание
+### Содержание
 
 - [HW-01. Gradle.](#hw01)
 - [HW-02. DIY ArrayList.](#hw02)
@@ -17,6 +17,7 @@
 - [HW-04. Garbage collection.](#hw04)
 - [HW-05. Automatic Logging.](#hw05)
 - [HW-06. ATM emulator.](#hw06)
+- [HW-07. Design patterns.](#hw07)
 
 ---
 
@@ -159,5 +160,45 @@ Java Reflection и работа с собственными аннотациям
 
 В модуле содержится тестовый класс `ATMTest` с методом `commonTest()`.
 Данный тест демонстрирует работу эмулятора АТМ.
+
+---
+
+<a name="hw07"></a>
+
+### HW-07. Design patterns.
+
+#### Постановка задачи
+
+Реализовать TODO, описанные в классе `Demo`:
+1. Класс `ru.otus.torwel.model.Message`. Добавить поля field11 - field13.
+   Для field13 используйте класс `ObjectForMessage`.
+2. Сделать процессор, который поменяет местами значения field11 и field12.
+3. Сделать процессор, который будет выбрасывать исключение в четную секунду.
+   Секунда должна определяться во время выполнения.
+   Сделать тест с гарантированным результатом.
+4. Сделать `Listener` для ведения истории: старое сообщение - новое.
+   Подумайте, как сделать, чтобы сообщения не портились.
+
+
+#### Реализация
+
+1. Внесены необходимые исправления в класс `ru.otus.torwel.model.Message`.
+2. Создан класс `ru.otus.torwel.processor.homework.ProcessorSwapF11F12`.
+   Реализован метод `process(Message message)`, меняющий значения полей
+   местами.
+3. Создан класс `ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobia`.
+   Создан тестовый класс `ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobiaTest`
+   с проверкой результатов выполнения метода `process(Message msg)`.
+4. Создан класс `ru.otus.torwel.listener.homework.ListenerHistory`. 
+   Его работа демонстрируется в методе `HomeWork.main(args)`.
+
+
+
+#### Как использовать
+
+Общая демонстрация выполненных заданий - метод `HomeWork.main(args)`.
+
+Для процессора, выбрасывающего исключение при запуске в четную секунду,
+создан отдельный тест `ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobiaTest`.
 
 ---
