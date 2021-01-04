@@ -1,5 +1,7 @@
 package ru.otus.torwel.model;
 
+import java.util.ArrayList;
+
 public class Message {
     private final long id;
     private final String field1;
@@ -104,6 +106,18 @@ public class Message {
     @Override
     public int hashCode() {
         return (int) (id ^ (id >>> 32));
+    }
+
+    /**
+     * Метод создает копию объекта Message.
+     * Для поля field13 c типом ObjectForMessages создается полная копия,
+     * чтобы избежать его неконтролируемых изменений.
+     */
+    @Override
+    public Object clone() {
+        ObjectForMessage newOFM = new ObjectForMessage();
+        newOFM.setData(new ArrayList<>(field13.getData()));
+        return toBuilder().field13(newOFM).build();
     }
 
     public Builder toBuilder() {

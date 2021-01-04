@@ -23,21 +23,8 @@ public class ListenerHistory implements Listener {
         addMessage(newMsg);
     }
 
-    /**
-     * Метод добавляет переданный объект Message в историю объектов.
-     * Поля типа String у переданного объекта можно не менять.
-     * Для поля типа ObjectForMessages должна быть создана полная копия,
-     * чтобы избежать его неконтролируемых изменений.
-     *
-     * @param msg добавляется в историю изменений объекта
-     */
     private void addMessage(Message msg) {
-        ObjectForMessage newOFM = new ObjectForMessage();
-        ArrayList<String> newData = new ArrayList<>(msg.getField13().getData());
-        newOFM.setData(newData);
-        var builder = msg.toBuilder();
-        builder.field13(newOFM);
-        history.add(builder.build());
+        history.add( (Message) msg.clone() );
     }
 
     public void printHistory() {
