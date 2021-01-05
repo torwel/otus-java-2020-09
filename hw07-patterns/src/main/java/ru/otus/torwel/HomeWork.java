@@ -8,6 +8,7 @@ import ru.otus.torwel.processor.Processor;
 import ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobia;
 import ru.otus.torwel.processor.homework.ProcessorSwapF11F12;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +31,7 @@ public class HomeWork {
          */
 
         List<Processor> processors = new ArrayList<>();
-        processors.add(new ProcessorEvenSecondsPhobia());
+        processors.add(new ProcessorEvenSecondsPhobia(() -> LocalDateTime.now().getSecond()));
         processors.add(new ProcessorSwapF11F12());
 
         var complexProcessor = new ComplexProcessor(processors, (ex) -> System.out.println(ex.getMessage()));

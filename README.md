@@ -186,8 +186,9 @@ Java Reflection и работа с собственными аннотациям
 2. Создан класс `ru.otus.torwel.processor.homework.ProcessorSwapF11F12`.
    Реализован метод `process(Message message)`, меняющий значения полей
    местами.
-3. Создан класс `ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobia`.
-   Создан тестовый класс `ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobiaTest`
+3. Создан класс `ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobia` и
+   интерфейс `TimeProvider`. Создан тестовый класс
+   `ru.otus.torwel.processor.homework.ProcessorEvenSecondsPhobiaTest`
    с проверкой результатов выполнения метода `process(Message msg)`.
 4. Создан класс `ru.otus.torwel.listener.homework.ListenerHistory`. 
    Его работа демонстрируется в методе `HomeWork.main(args)`.
