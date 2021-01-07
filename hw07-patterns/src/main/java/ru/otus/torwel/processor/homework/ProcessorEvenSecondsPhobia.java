@@ -14,7 +14,7 @@ public class ProcessorEvenSecondsPhobia implements Processor {
     @Override
     public Message process(Message message) {
 
-        var second = timeProvider.getSeconds();
+        var second = timeProvider.getTime().getSecond();
 
         if (second % 2 == 0) {
             throw new IllegalStateException("Method run at even second: " + second);

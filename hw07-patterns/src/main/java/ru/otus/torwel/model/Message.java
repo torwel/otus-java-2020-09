@@ -115,9 +115,7 @@ public class Message {
      */
     @Override
     public Object clone() {
-        ObjectForMessage newOFM = new ObjectForMessage();
-        newOFM.setData(new ArrayList<>(field13.getData()));
-        return toBuilder().field13(newOFM).build();
+        return toBuilder().field13((ObjectForMessage) field13.clone()).build();
     }
 
     public Builder toBuilder() {
@@ -140,7 +138,7 @@ public class Message {
                 ", field10='" + field10 + '\'' +
                 ", field11='" + field11 + '\'' +
                 ", field12='" + field12 + '\'' +
-                ", field13=" + field13.getData() +
+                ", field13=" + (field13 != null ? field13.getData() : "'null'") +
                 '}';
     }
 

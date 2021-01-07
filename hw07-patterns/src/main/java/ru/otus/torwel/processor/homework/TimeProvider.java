@@ -1,5 +1,7 @@
 package ru.otus.torwel.processor.homework;
 
+import java.time.LocalDateTime;
+
 public interface TimeProvider {
-    int getSeconds();
+    LocalDateTime getTime();
 }

@@ -2,7 +2,6 @@ package ru.otus.torwel.listener.homework;
 
 import ru.otus.torwel.listener.Listener;
 import ru.otus.torwel.model.Message;
-import ru.otus.torwel.model.ObjectForMessage;
 
 import java.util.ArrayList;
 import java.util.List;

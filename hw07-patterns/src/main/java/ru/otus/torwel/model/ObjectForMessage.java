@@ -1,5 +1,6 @@
 package ru.otus.torwel.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ObjectForMessage {
@@ -11,5 +12,12 @@ public class ObjectForMessage {
 
     public void setData(List<String> data) {
         this.data = data;
+    }
+
+    @Override
+    protected Object clone() {
+        ObjectForMessage newOFM = new ObjectForMessage();
+        newOFM.setData(new ArrayList<>(data));
+        return newOFM;
     }
 }

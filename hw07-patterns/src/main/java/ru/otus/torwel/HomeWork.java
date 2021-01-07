@@ -31,7 +31,7 @@ public class HomeWork {
          */
 
         List<Processor> processors = new ArrayList<>();
-        processors.add(new ProcessorEvenSecondsPhobia(() -> LocalDateTime.now().getSecond()));
+        processors.add(new ProcessorEvenSecondsPhobia(LocalDateTime::now));
         processors.add(new ProcessorSwapF11F12());
 
         var complexProcessor = new ComplexProcessor(processors, (ex) -> System.out.println(ex.getMessage()));
