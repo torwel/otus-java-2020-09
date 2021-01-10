@@ -1,15 +1,5 @@
 package ru.otus.torwel.myjson;
 
-/*
-    Поддержите:
-    - примитивные типы и Wrapper-ы (Integer, Float и т.д.)
-    - строки
-    - массивы примитивных типов
-    - коллекции (interface Collection)
-
-    transient ?????
-*/
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -33,8 +23,10 @@ public class AnyObject {
     private String stringType;
     private char[] charArray;
     private int[] intArray;
+    private String[] stringArray;
     private List<Double> listDoubles;
     private List<Character> listCharacters;
+    private List<String> listString;
 
     public int pubInt = 9000;
 
@@ -113,12 +105,20 @@ public class AnyObject {
         this.intArray = intArray;
     }
 
+    public void setStringArray(String[] stringArray) {
+        this.stringArray = stringArray;
+    }
+
     public void setListDoubles(List<Double> listDoubles) {
         this.listDoubles = listDoubles;
     }
 
     public void setListCharacters(List<Character> listCharacters) {
         this.listCharacters = listCharacters;
+    }
+
+    public void setListString(List<String> listString) {
+        this.listString = listString;
     }
 
     @Override
@@ -141,8 +141,10 @@ public class AnyObject {
                 ", stringType='" + stringType + '\'' +
                 ", charArray=" + Arrays.toString(charArray) +
                 ", intArray=" + Arrays.toString(intArray) +
+                ", stringArray=" + Arrays.toString(stringArray) +
                 ", listDoubles=" + listDoubles +
                 ", listCharacters=" + listCharacters +
+                ", listString=" + listString +
                 ", pubInt=" + pubInt +
                 '}';
     }
@@ -152,14 +154,47 @@ public class AnyObject {
         if (this == o) return true;
         if (!(o instanceof AnyObject)) return false;
         AnyObject anyObject = (AnyObject) o;
-        return byteType == anyObject.byteType && shortType == anyObject.shortType && intType == anyObject.intType && longType == anyObject.longType && Float.compare(anyObject.floatType, floatType) == 0 && Double.compare(anyObject.doubleType, doubleType) == 0 && charType == anyObject.charType && pubInt == anyObject.pubInt && Objects.equals(byteWrapped, anyObject.byteWrapped) && Objects.equals(shortWrapped, anyObject.shortWrapped) && Objects.equals(intWrapped, anyObject.intWrapped) && Objects.equals(longWrapped, anyObject.longWrapped) && Objects.equals(floatWrapped, anyObject.floatWrapped) && Objects.equals(doubleWrapped, anyObject.doubleWrapped) && Objects.equals(charWrapped, anyObject.charWrapped) && Objects.equals(stringType, anyObject.stringType) && Arrays.equals(charArray, anyObject.charArray) && Arrays.equals(intArray, anyObject.intArray) && Objects.equals(listDoubles, anyObject.listDoubles) && Objects.equals(listCharacters, anyObject.listCharacters);
+        return byteType == anyObject.byteType &&
+                shortType == anyObject.shortType &&
+                intType == anyObject.intType &&
+                longType == anyObject.longType &&
+                Float.compare(anyObject.floatType, floatType) == 0 &&
+                Double.compare(anyObject.doubleType, doubleType) == 0 &&
+                charType == anyObject.charType &&
+                pubInt == anyObject.pubInt &&
+                Objects.equals(byteWrapped, anyObject.byteWrapped) &&
+                Objects.equals(shortWrapped, anyObject.shortWrapped) &&
+                Objects.equals(intWrapped, anyObject.intWrapped) &&
+                Objects.equals(longWrapped, anyObject.longWrapped) &&
+                Objects.equals(floatWrapped, anyObject.floatWrapped) &&
+                Objects.equals(doubleWrapped, anyObject.doubleWrapped) &&
+                Objects.equals(charWrapped, anyObject.charWrapped) &&
+                Objects.equals(stringType, anyObject.stringType) &&
+                Arrays.equals(charArray, anyObject.charArray) &&
+                Arrays.equals(intArray, anyObject.intArray) &&
+                Arrays.equals(stringArray, anyObject.stringArray) &&
+                Objects.equals(listDoubles, anyObject.listDoubles) &&
+                Objects.equals(listCharacters, anyObject.listCharacters) &&
+                Objects.equals(listString, anyObject.listString);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(byteType, byteWrapped, shortType, shortWrapped, intType, intWrapped, longType, longWrapped, floatType, floatWrapped, doubleType, doubleWrapped, charType, charWrapped, stringType, listDoubles, listCharacters, pubInt);
+        int result = Objects.hash(byteType, byteWrapped,
+                shortType, shortWrapped,
+                intType, intWrapped,
+                longType, longWrapped,
+                floatType, floatWrapped,
+                doubleType, doubleWrapped,
+                charType, charWrapped,
+                stringType,
+                listDoubles,
+                listCharacters,
+                listString,
+                pubInt);
         result = 31 * result + Arrays.hashCode(charArray);
         result = 31 * result + Arrays.hashCode(intArray);
+        result = 31 * result + Arrays.hashCode(stringArray);
         return result;
     }
 }
