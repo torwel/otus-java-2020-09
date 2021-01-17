@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,6 +21,31 @@ import static org.junit.jupiter.api.Assertions.*;
     void setUp() {
         gson = new Gson();
         myGson = new MyGson();
+    }
+
+    @Test
+    @DisplayName("Общий тест JSON.")
+    void test() {
+        var gson = new Gson();
+        var serializer = new MyGson();
+        assertEquals(gson.toJson(null), serializer.toJson(null));
+        assertEquals(gson.toJson((byte)1), serializer.toJson((byte)1));
+        assertEquals(gson.toJson((short)1f), serializer.toJson((short)1f));
+        assertEquals(gson.toJson(1), serializer.toJson(1));
+        assertEquals(gson.toJson(1L), serializer.toJson(1L));
+        assertEquals(gson.toJson(1f), serializer.toJson(1f));
+        assertEquals(gson.toJson(1d), serializer.toJson(1d));
+        assertEquals(gson.toJson("aaa"), serializer.toJson("aaa"));
+        assertEquals(gson.toJson('a'), serializer.toJson('a'));
+        assertEquals(gson.toJson(new int[3]), serializer.toJson(new int[3]));
+        assertEquals(gson.toJson(new int[] {1, 2, 3}), serializer.toJson(new int[] {1, 2, 3}));
+        assertEquals(gson.toJson(new char[] {'1', '2', '3'}), serializer.toJson(new char[] {'1', '2', '3'}));
+        assertEquals(gson.toJson(new String[] {"s1", "s2", "s3"}), serializer.toJson(new String[] {"s1", "s2", "s3"}));
+        assertEquals(gson.toJson(List.of()), serializer.toJson(List.of()));
+        assertEquals(gson.toJson(List.of(1, 2, 3)), serializer.toJson(List.of(1, 2, 3)));
+        assertEquals(gson.toJson(List.of('1', '2', '3')), serializer.toJson(List.of('1', '2', '3')));
+        assertEquals(gson.toJson(List.of("s1", "s2", "s3")), serializer.toJson(List.of("s1", "s2", "s3")));
+        assertEquals(gson.toJson(Collections.singletonList(1)), serializer.toJson(Collections.singletonList(1)));
     }
 
     @Test
@@ -126,15 +153,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
         // serialize object
         String expectedJson = gson.toJson(testObject);
-        System.out.println("expected: " + expectedJson);
+        System.out.println("expected string: " + expectedJson);
 
         String myJson = myGson.toJson(testObject);
-        System.out.println("myJson:   " + myJson);
+        System.out.println("myJson string:   " + myJson);
 
         // deserializing json string
         System.out.println("expected object: " + testObject);
         AnyObject deserializedTestObject = gson.fromJson(myJson, testObject.getClass());
-        System.out.println("myJson object:   " + deserializedTestObject);
+        System.out.println("myGson object:   " + deserializedTestObject);
 
         assertEquals(testObject, deserializedTestObject);
     }
