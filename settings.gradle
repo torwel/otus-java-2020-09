@@ -15,3 +15,6 @@ include 'hw04-GC'
 include 'hw05-autoLogging'
 include 'hw06-ATMemulator'
 include 'hw07-patterns'
+
+include 'hw09-orm'
+

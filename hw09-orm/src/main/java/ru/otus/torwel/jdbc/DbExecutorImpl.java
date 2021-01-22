@@ -1,0 +1,54 @@
+package ru.otus.torwel.jdbc;
+
+import ru.otus.torwel.jdbc.mapper.JdbcMapper;
+
+import java.sql.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+
+/**
+ * @author sergey
+ * created on 03.02.19.
+ */
+public class DbExecutorImpl<T> implements DbExecutor<T> {
+
+    private JdbcMapper<T> mapper;
+
+    @Override
+    public long executeInsert(Connection connection, String sql, List<Object> params) throws SQLException {
+        Savepoint savePoint = connection.setSavepoint("savePointName");
+        try (var pst = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            for (int idx = 0; idx < params.size(); idx++) {
+                pst.setObject(idx + 1, params.get(idx));
+            }
+            pst.executeUpdate();
+            try (ResultSet rs = pst.getGeneratedKeys()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            connection.rollback(savePoint);
+            throw ex;
+        }
+    }
+
+    @Override
+    public Optional<T> executeSelect(Connection connection, String sql, Object id,
+                                     Function<ResultSet, T> rsHandler) throws SQLException {
+        try (var pst = connection.prepareStatement(sql)) {
+            pst.setObject(1, id);
+            try (var rs = pst.executeQuery()) {
+                return Optional.ofNullable(rsHandler.apply(rs));
+            }
+        }
+    }
+
+    public JdbcMapper<T> getMapper() {
+        return mapper;
+    }
+
+    public void setMapper(JdbcMapper<T> mapper) {
+        this.mapper = mapper;
+    }
+}
