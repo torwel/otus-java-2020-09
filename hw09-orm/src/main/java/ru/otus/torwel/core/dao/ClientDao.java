@@ -5,11 +5,13 @@ import ru.otus.torwel.core.sessionmanager.SessionManager;
 
 import java.util.Optional;
 
-public interface ClientDao {
-    Optional<Client> findById(long id);
+// torwel сделал интерфейс параметризованным
+
+public interface ClientDao<T> {
+    Optional<T> findById(long id);
     //List<Client> findAll();
 
-    long insert(Client client);
+    long insert(T client);
 
     //void update(Client client);
     //long insertOrUpdate(Client client);

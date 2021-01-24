@@ -49,4 +49,9 @@ class JdbcMapperImplTest {
         System.out.println(((EntityClassMetaData<?>) mapper).getFieldsWithoutId());
     }
 
+    @Test
+    void experiment() {
+    }
+
+    // todo: Сделать тест класса с полями всех примитивных типов
 }

@@ -17,17 +17,6 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T>, EntityClassMetaData<T>,
     public void insert(T objectData) {
         // todo: подготовка вставки объекта в БД:
 
-        // генерация SQL-запроса
-        // требуется
-        // - имя таблицы
-        // - количество полей
-
-
-        // генерация списка имен полей БД
-
-//        this.objectData = objectData;
-
-
     }
 
     @Override
@@ -47,20 +36,6 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T>, EntityClassMetaData<T>,
     public T findById(Object id, Class<T> clazz) {
         // todo: подготовка чтения определенного объекта из БД
         //  генерация SQL-запроса, списка имен полей БД
-
-        // SELECT * FROM table WHERE idn = ?
-        //  table - clazz.getSimpleName()
-        //  idn - EntityClassMetaData.getIdField.getName()
-        //  ? - param id
-
-        try {
-            Constructor<?> c = getConstructor();
-
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-
-
         return null;
     }
 
@@ -74,7 +49,7 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T>, EntityClassMetaData<T>,
     @Override
     public Constructor<T> getConstructor() throws NoSuchMethodException {
         Class<?>[] paramTypes = new Class[]{long.class, String.class, int.class};
-        return clazz.getConstructor(paramTypes);
+        return (Constructor<T>) clazz.getConstructors()[0];
 
     }
 
@@ -106,26 +81,33 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T>, EntityClassMetaData<T>,
 
 // -----  реализация EntitySQLMetaData ----------------------------------
 
+    // SELECT * FROM tableName
     @Override
     public String getSelectAllSql() {
-        return null;
+        return "SELECT * FROM " + getName().toLowerCase();
     }
 
+    // SELECT * FROM tableName WHERE idName = ?
     @Override
     public String getSelectByIdSql() {
-        return null;
+
+        StringBuilder request = new StringBuilder();
+        request.append("SELECT * FROM ")
+                .append(getName().toLowerCase())
+                .append(" WHERE ")
+                .append(getIdField().getName().toLowerCase())
+                .append(" = ?");
+        return request.toString();
     }
 
+    // INSERT INTO tableName (field1,field2) VALUES (?,?)
     @Override
     public String getInsertSql() {
         List<Field> fields = getFieldsWithoutId();
-
         StringBuilder request = new StringBuilder();
-        request.append("INSERT INTO ");
-        request.append(getName().toLowerCase());
-        request.append(" (");
-
         StringBuilder values = new StringBuilder();
+
+        request.append("INSERT INTO ").append(getName().toLowerCase()).append(" (");
         for (Field field : fields) {
             request.append(field.getName()).append(",");
             values.append("?,");
@@ -133,14 +115,22 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T>, EntityClassMetaData<T>,
         values.deleteCharAt(values.length() - 1);
         values.append(')');
         request.deleteCharAt(request.length() - 1);
-        request.append(") VALUES (");
-        request.append(values);
+        request.append(") VALUES (").append(values);
         return request.toString();
     }
 
+    // UPDATE tableName SET field1 = ?, field2 = ?, ... fieldN = ?
     @Override
     public String getUpdateSql() {
-        return null;
+        List<Field> fields = getFieldsWithoutId();
+        StringBuilder request = new StringBuilder();
+
+        request.append("UPDATE ").append(getName().toLowerCase()).append(" SET ");
+        for (Field field : fields) {
+            request.append(field.getName()).append(" = ?,");
+        }
+        request.deleteCharAt(request.length() - 1);
+        return request.toString();
     }
 
 }

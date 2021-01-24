@@ -29,7 +29,7 @@ public class HomeWork {
 // Работа с пользователем
         DbExecutorImpl<Client> dbExecutor = new DbExecutorImpl<>();
         JdbcMapper<Client> jdbcMapperClient = new JdbcMapperImpl<>(Client.class); //
-        ClientDao clientDao = new ClientDaoJdbcMapper(sessionManager, dbExecutor, jdbcMapperClient); // = new UserDaoJdbcMapper(sessionManager, dbExecutor);
+        ClientDao<Client> clientDao = new ClientDaoJdbcMapper<>(sessionManager, dbExecutor, jdbcMapperClient); // = new UserDaoJdbcMapper(sessionManager, dbExecutor);
 
 
 // Код дальше должен остаться, т.е. clientDao должен использоваться
