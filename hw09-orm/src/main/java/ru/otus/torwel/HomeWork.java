@@ -4,12 +4,14 @@ import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.otus.torwel.core.dao.ClientDao;
+import ru.otus.torwel.core.dao.Dao;
 import ru.otus.torwel.core.model.Account;
 import ru.otus.torwel.core.model.Client;
 import ru.otus.torwel.core.service.DbServiceClientImpl;
+import ru.otus.torwel.core.service.DbServiceImpl;
 import ru.otus.torwel.jdbc.DbExecutorImpl;
-import ru.otus.torwel.jdbc.dao.ClientDaoJdbcMapper;
-import ru.otus.torwel.jdbc.mapper.JdbcMapper;
+import ru.otus.torwel.jdbc.dao.ClientDaoJdbc;
+import ru.otus.torwel.jdbc.dao.JdbcDaoImpl;
 import ru.otus.torwel.jdbc.mapper.JdbcMapperImpl;
 import ru.otus.torwel.jdbc.sessionmanager.SessionManagerJdbc;
 
@@ -28,8 +30,8 @@ public class HomeWork {
 
 // Работа с пользователем
         DbExecutorImpl<Client> dbExecutor = new DbExecutorImpl<>();
-        JdbcMapper<Client> jdbcMapperClient = new JdbcMapperImpl<>(Client.class); //
-        ClientDao<Client> clientDao = new ClientDaoJdbcMapper<>(sessionManager, dbExecutor, jdbcMapperClient); // = new UserDaoJdbcMapper(sessionManager, dbExecutor);
+        JdbcMapperImpl<Client> jdbcMapperClient = new JdbcMapperImpl<>(Client.class, dbExecutor, sessionManager); //
+        ClientDao clientDao = new ClientDaoJdbc(sessionManager, jdbcMapperClient); // = new UserDaoJdbcMapper(sessionManager, dbExecutor);
 
 
 // Код дальше должен остаться, т.е. clientDao должен использоваться
@@ -41,9 +43,19 @@ public class HomeWork {
                 client -> logger.info("created client, name:{}", client.getName()),
                 () -> logger.info("client was not created")
         );
+
+        Client clientForUpdate = new Client(id, "newManClient", 20);
+        dbServiceClient.insertOrUpdate(clientForUpdate);
+
 // Работа со счетом
 
-
+        DbExecutorImpl<Account> dbExecutorAccount = new DbExecutorImpl<>();
+        JdbcMapperImpl<Account> jdbcMapperAccount = new JdbcMapperImpl<>(Account.class, dbExecutorAccount, sessionManager);
+        Dao<Account> accountDao = new JdbcDaoImpl<>(sessionManager, jdbcMapperAccount, Account.class);
+        var dbServiceAccount = new DbServiceImpl<>(accountDao);
+        Account account = new Account("1111222233334444", "VISA", 10.8);
+        long idAccount = dbServiceAccount.saveObject(account);
+        logger.info("account created, id: {}", idAccount);
     }
 
     private static void flywayMigrations(DataSource dataSource) {

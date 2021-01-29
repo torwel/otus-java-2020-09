@@ -19,6 +19,7 @@
 - [HW-06. ATM emulator.](#hw06)
 - [HW-07. Design patterns.](#hw07)
 - [HW-08. JSON object writer.](#hw08)
+- [HW-09. DIY ORM.](hw09)
 
 ---
 
@@ -239,3 +240,55 @@ Java Reflection и работа с собственными аннотациям
 
 ---
 
+<a name="hw09"></a>
+### HW-09. DIY ORM.
+
+#### Постановка задачи
+
+Создать свой ORM для существующего приложения.  
+Цель: Научиться работать с jdbc.
+На практике освоить многоуровневую архитектуру приложения.  
+Работа должна использовать базу данных в docker-контейнере.
+
+
+#### Реализация
+
+Реализованы интерфейсы
+- `class JdbcMapperImpl<T> implements JdbcMapper<T>`;
+- `class EntityClassMetaDataImpl<T> implements EntityClassMetaData<T>`;
+- `class EntitySQLMetaDataImpl implements EntitySQLMetaData`.
+
+Их реализации встроены в существующие слои приложения без их изменения.
+
+Также создан проверочный класс `Account`. Для работы с ним не подходят
+существующие реализации интерфейсов `DBServiceClient`, `ClientDao`.
+Были созданы параметризованные интерфейсы и их реализации:
+- `class DbServiceImpl<T> implements DBService<T>`
+- `class JdbcDaoImpl<T> implements Dao<T>`
+
+
+
+
+#### Как использовать
+
+Для проверки работы ORM с классом `Client` в методе `HomeWork.main()` предложен
+блок кода. Он оставлен без изменений и добавлена проверка работы обновления
+записей в БД.
+
+Далее, в методе `HomeWork.main()` идет код, демонстрирующий работу созданного
+ORM с классом Account.
+
+Порядок запуска:
+1. Запустить docker.
+2. Выполнить метод `HomeWork.main()`.
+
+В директории `hw09-orm/docker` файлы с инструкциями запуска docker'а:
+- `runDb.src` - скрипт для Centos.
+- `winCommands.txt` - команды для терминала Windows.
+
+Если необходимо проверить работу с новым классом необходимо создать класс
+и описать таблицу для него в файле
+`hw09-orm/src/main/resources/db/migration/V1__initial_schema.sql`.
+
+
+---

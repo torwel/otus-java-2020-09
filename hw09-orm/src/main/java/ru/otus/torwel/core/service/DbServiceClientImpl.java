@@ -49,4 +49,35 @@ public class DbServiceClientImpl implements DBServiceClient {
             return Optional.empty();
         }
     }
+
+    public void updateClient(Client client) {
+        try (var sessionManager = clientDao.getSessionManager()) {
+            sessionManager.beginSession();
+            try {
+                clientDao.update(client);
+                sessionManager.commitSession();
+
+                logger.info("updated client: {}", client.getId());
+            } catch (Exception e) {
+                sessionManager.rollbackSession();
+                throw new DbServiceException(e);
+            }
+        }
+    }
+
+    public long insertOrUpdate(Client client) {
+        try (var sessionManager = clientDao.getSessionManager()) {
+            sessionManager.beginSession();
+            try {
+                var clientId = clientDao.insertOrUpdate(client);
+                sessionManager.commitSession();
+
+                logger.info("Inserted or updated client: {}", clientId);
+                return clientId;
+            } catch (Exception e) {
+                sessionManager.rollbackSession();
+                throw new DbServiceException(e);
+            }
+        }
+    }
 }

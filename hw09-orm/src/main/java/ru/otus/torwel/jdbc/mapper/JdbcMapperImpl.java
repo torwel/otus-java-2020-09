@@ -1,136 +1,212 @@
 package ru.otus.torwel.jdbc.mapper;
 
-import java.lang.reflect.Constructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.otus.torwel.jdbc.DbExecutor;
+import ru.otus.torwel.jdbc.sessionmanager.SessionManagerJdbc;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class JdbcMapperImpl<T> implements JdbcMapper<T>, EntityClassMetaData<T>, EntitySQLMetaData {
+public class JdbcMapperImpl<T> implements JdbcMapper<T> {
+    private static final Logger logger = LoggerFactory.getLogger(JdbcMapperImpl.class);
 
-    private final Class<T> clazz;
+    private final DbExecutor<T> dbExecutor;
+    private final SessionManagerJdbc sessionManager;
+    private final EntityClassMetaDataImpl<T> entityCMD;
+    private final EntitySQLMetaDataImpl entitySMD;
 
-    public JdbcMapperImpl(Class<T> clazz) {
-        this.clazz = clazz;
+
+    public JdbcMapperImpl(Class<T> clazz, DbExecutor<T> dbExecutor, SessionManagerJdbc sessionManager) {
+        this.dbExecutor = dbExecutor;
+        this.sessionManager = sessionManager;
+        entityCMD = new EntityClassMetaDataImpl<>(clazz);
+        entitySMD = new EntitySQLMetaDataImpl(entityCMD);
     }
 
+    // вставка объекта в БД
     @Override
     public void insert(T objectData) {
-        // todo: подготовка вставки объекта в БД:
 
+        List<Field> fields = entityCMD.getFieldsWithoutId();
+        Object id = null;
+        String sql = entitySMD.getInsertSql();
+        List<Object> params = null;
+        try {
+            params = getFieldsValues(objectData, fields);
+        } catch (IllegalAccessException e) {
+            logger.error(e.getMessage(), e);
+        }
+        try {
+            id = dbExecutor.executeInsert(getConnection(), sql, params);
+        } catch (SQLException e) {
+            logger.error(sql);
+            logger.error(String.valueOf(params));
+            logger.error(e.getMessage(), e);
+        }
+        Field idField =  entityCMD.getIdField();
+        if (idField != null) {
+            try {
+                idField.setAccessible(true);
+                idField.set(objectData, id);
+            } catch (IllegalAccessException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
     }
 
+    // Изменения информации об объекте в БД
     @Override
     public void update(T objectData) {
-        // todo: подготовка изменения информации об объекте в БД:
-        //  генерация SQL-запроса, списка имен полей БД
+        List<Field> fields = entityCMD.getFieldsWithoutId();
+        try {
+            String sql = entitySMD.getUpdateSql();
+            List<Object> params;
+            params = getFieldsValues(objectData, fields);
 
+            Object id = getIdValue(objectData);
+            params.add(id);
+            dbExecutor.executeInsert(getConnection(), sql, params);
+        } catch (SQLException | IllegalAccessException ex) {
+            logger.error(ex.getMessage(), ex);
+        }
     }
 
+    // Сохранение или изменение информации об объекте в БД.
+    // Наличе объекта в базе определяем только по его @Id полю.
     @Override
     public void insertOrUpdate(T objectData) {
-        // todo: сохранение или изменение информации об объекте в БД
-
+        long id = getIdValue(objectData);
+        if (id != 0) {
+            try {
+                String sql = entitySMD.getSelectByIdSql();
+                Optional<T> optObject = dbExecutor.executeSelect(getConnection(), sql, id, rs -> {
+                    try {
+                        if (rs.next()) {
+                            return entityCMD.createEmptyObject();
+                        }
+                    } catch (SQLException | InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+                        logger.error(ex.getMessage(), ex);
+                    }
+                    return null;
+                });
+                if (optObject.isPresent()) {
+                    update(objectData);
+                }
+                else {
+                    // объекта с таким id нет в БД, вставляем объект в БД
+                    insert(objectData);
+                }
+            } catch (SQLException throwables) {
+                logger.error(throwables.getMessage(), throwables);
+            }
+        }
+        else {
+            // у класса объекта нет помеченного @Id поля или
+            // у объекта пустой id, вставляем объект в БД
+            insert(objectData);
+        }
     }
 
+    // Чтение объекта с определенным Id из БД
     @Override
     public T findById(Object id, Class<T> clazz) {
-        // todo: подготовка чтения определенного объекта из БД
-        //  генерация SQL-запроса, списка имен полей БД
+        Optional<T> optObject = Optional.empty();
+        try {
+            String sql = entitySMD.getSelectByIdSql();
+            optObject = dbExecutor.executeSelect(getConnection(), sql, id, this::apply);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return optObject.orElse(null);
+    }
+
+    private Connection getConnection() {
+        return sessionManager.getCurrentSession().getConnection();
+    }
+
+    // Возвращает значение поля, помеченного аннотацией @Id
+    public long getIdValue(T objectData) {
+        long id = 0;
+        Field idField = entityCMD.getIdField();
+        if (idField != null) {
+            try {
+                idField.setAccessible(true);
+                id = idField.getLong(objectData);
+            } catch (IllegalAccessException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        return id;
+    }
+
+    // Метод возвращает список значений полей объекта object
+    // в порядке, соответствующем списку полей fields
+    private List<Object> getFieldsValues(T object, List<Field> fields) throws IllegalAccessException {
+        List<Object> values = new ArrayList<>();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            values.add(field.get(object));
+        }
+        return values;
+    }
+
+    private T apply(ResultSet rs) {
+        try {
+            if (rs.next()) {
+                T instance = entityCMD.createEmptyObject();
+                restoreObjectFields(rs, instance);
+                return instance;
+            }
+        } catch (SQLException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            logger.error(e.getMessage(), e);
+        }
         return null;
     }
 
-    // -----  реализация EntityClassMetaData<T> ----------------------------------
+    private void restoreObjectFields(ResultSet rs, T instance) throws SQLException, IllegalAccessException {
+        for (Field field : entityCMD.getAllFields()) {
+            String fieldName = field.getName();
+            Class<?> typeField = field.getType();
+            field.setAccessible(true);
 
-    @Override
-    public String getName() {
-        return clazz.getSimpleName();
-    }
-
-    @Override
-    public Constructor<T> getConstructor() throws NoSuchMethodException {
-        Class<?>[] paramTypes = new Class[]{long.class, String.class, int.class};
-        return (Constructor<T>) clazz.getConstructors()[0];
-
-    }
-
-    @Override
-    public Field getIdField() {
-        for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(Id.class)) {
-                return field;
+            if (!typeField.isPrimitive()) {
+                Object value = rs.getObject(fieldName, typeField);
+                field.set(instance, value);
+            }
+            else if (typeField == boolean.class) {
+                field.setBoolean(instance, rs.getBoolean(fieldName));
+            }
+            else if (typeField == char.class) {
+                String value = rs.getString(fieldName);
+                if (value.length() <= 1) {
+                    field.setChar(instance, value.charAt(0));
+                }
+            }
+            else if (typeField == byte.class) {
+                field.setByte(instance, rs.getByte(fieldName));
+            }
+            else if (typeField == short.class) {
+                field.setShort(instance, rs.getShort(fieldName));
+            }
+            else if (typeField == int.class) {
+                field.setInt(instance, rs.getInt(fieldName));
+            }
+            else if (typeField == long.class) {
+                field.setLong(instance, rs.getLong(fieldName));
+            }
+            else if (typeField == float.class) {
+                field.setFloat(instance, rs.getFloat(fieldName));
+            }
+            else if (typeField == double.class) {
+                field.setDouble(instance, rs.getDouble(fieldName));
             }
         }
-        return null;
     }
-
-    @Override
-    public List<Field> getAllFields() {
-        return List.of(clazz.getDeclaredFields());
-    }
-
-    @Override
-    public List<Field> getFieldsWithoutId() {
-        List<Field> list = new ArrayList<>();
-        for (Field field : clazz.getDeclaredFields()) {
-            if (!field.isAnnotationPresent(Id.class)) {
-                list.add(field);
-            }
-        }
-        return list;
-    }
-
-// -----  реализация EntitySQLMetaData ----------------------------------
-
-    // SELECT * FROM tableName
-    @Override
-    public String getSelectAllSql() {
-        return "SELECT * FROM " + getName().toLowerCase();
-    }
-
-    // SELECT * FROM tableName WHERE idName = ?
-    @Override
-    public String getSelectByIdSql() {
-
-        StringBuilder request = new StringBuilder();
-        request.append("SELECT * FROM ")
-                .append(getName().toLowerCase())
-                .append(" WHERE ")
-                .append(getIdField().getName().toLowerCase())
-                .append(" = ?");
-        return request.toString();
-    }
-
-    // INSERT INTO tableName (field1,field2) VALUES (?,?)
-    @Override
-    public String getInsertSql() {
-        List<Field> fields = getFieldsWithoutId();
-        StringBuilder request = new StringBuilder();
-        StringBuilder values = new StringBuilder();
-
-        request.append("INSERT INTO ").append(getName().toLowerCase()).append(" (");
-        for (Field field : fields) {
-            request.append(field.getName()).append(",");
-            values.append("?,");
-        }
-        values.deleteCharAt(values.length() - 1);
-        values.append(')');
-        request.deleteCharAt(request.length() - 1);
-        request.append(") VALUES (").append(values);
-        return request.toString();
-    }
-
-    // UPDATE tableName SET field1 = ?, field2 = ?, ... fieldN = ?
-    @Override
-    public String getUpdateSql() {
-        List<Field> fields = getFieldsWithoutId();
-        StringBuilder request = new StringBuilder();
-
-        request.append("UPDATE ").append(getName().toLowerCase()).append(" SET ");
-        for (Field field : fields) {
-            request.append(field.getName()).append(" = ?,");
-        }
-        request.deleteCharAt(request.length() - 1);
-        return request.toString();
-    }
-
 }
