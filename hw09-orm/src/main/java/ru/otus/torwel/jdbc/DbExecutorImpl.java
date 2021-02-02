@@ -25,7 +25,7 @@ public class DbExecutorImpl<T> implements DbExecutor<T> {
             pst.executeUpdate();
             try (ResultSet rs = pst.getGeneratedKeys()) {
                 rs.next();
-                return rs.getLong(1);
+                return rs.getObject(1);
             }
         } catch (SQLException ex) {
             connection.rollback(savePoint);

@@ -3,6 +3,7 @@ package ru.otus.torwel.core.model;
 import ru.otus.torwel.jdbc.mapper.Id;
 
 public class Account {
+    @Id
     private String no;
     private String type;
     private double rest;
@@ -13,6 +14,10 @@ public class Account {
         this.no = no;
         this.type = type;
         this.rest = rest;
+    }
+
+    public String getNo() {
+        return no;
     }
 
     public double getRest() {
@@ -26,7 +31,7 @@ public class Account {
     @Override
     public String toString() {
         return "Account{" +
-                ", no='" + no + '\'' +
+                "no='" + no + '\'' +
                 ", type='" + type + '\'' +
                 ", rest=" + rest +
                 '}';

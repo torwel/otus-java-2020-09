@@ -2,7 +2,6 @@ package ru.otus.torwel.jdbc.mapper;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +14,6 @@ public class EntityClassMetaDataImpl<T> implements EntityClassMetaData<T> {
     private Field cacheIdField;
     private List<Field> cacheAllFields;
     private List<Field> cacheFieldsWithoutId;
-    private T emptyObject;
 
     public EntityClassMetaDataImpl(Class<T> clazz) {
         this.clazz = clazz;
@@ -75,6 +73,7 @@ public class EntityClassMetaDataImpl<T> implements EntityClassMetaData<T> {
         return cacheFieldsWithoutId;
     }
 
+/*
     public T createEmptyObject() throws IllegalAccessException, InvocationTargetException, InstantiationException {
         if (emptyObject != null) {
             return emptyObject;
@@ -87,4 +86,5 @@ public class EntityClassMetaDataImpl<T> implements EntityClassMetaData<T> {
         }
         return emptyObject = constructor.newInstance(params);
     }
+*/
 }

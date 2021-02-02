@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,38 +18,36 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T> {
 
     private final DbExecutor<T> dbExecutor;
     private final SessionManagerJdbc sessionManager;
-    private final EntityClassMetaDataImpl<T> entityCMD;
-    private final EntitySQLMetaDataImpl entitySMD;
+    private final EntityClassMetaData<T> entityClassMetaData;
+    private final EntitySQLMetaData entitySQLMetaData;
+    private final JdbcMapperReflectionHelper<T> jdbcMapperReflectionHelper;
 
-
-    public JdbcMapperImpl(Class<T> clazz, DbExecutor<T> dbExecutor, SessionManagerJdbc sessionManager) {
+    public JdbcMapperImpl(DbExecutor<T> dbExecutor,
+                          SessionManagerJdbc sessionManager,
+                          EntityClassMetaData<T> entityClassMetaData,
+                          EntitySQLMetaData entitySQLMetaData,
+                          JdbcMapperReflectionHelper<T> jdbcMapperReflectionHelper) {
         this.dbExecutor = dbExecutor;
         this.sessionManager = sessionManager;
-        entityCMD = new EntityClassMetaDataImpl<>(clazz);
-        entitySMD = new EntitySQLMetaDataImpl(entityCMD);
+        this.entityClassMetaData = entityClassMetaData;
+        this.entitySQLMetaData = entitySQLMetaData;
+        this.jdbcMapperReflectionHelper = jdbcMapperReflectionHelper;
     }
 
     // вставка объекта в БД
     @Override
-    public void insert(T objectData) {
+    public void insert(T objectData) throws JdbcMapperSQLException {
 
-        List<Field> fields = entityCMD.getFieldsWithoutId();
-        Object id = null;
-        String sql = entitySMD.getInsertSql();
-        List<Object> params = null;
-        try {
-            params = getFieldsValues(objectData, fields);
-        } catch (IllegalAccessException e) {
-            logger.error(e.getMessage(), e);
-        }
+        List<Field> fields = entityClassMetaData.getFieldsWithoutId();
+        Object id;
+        String sql = entitySQLMetaData.getInsertSql();
+        List<Object> params = jdbcMapperReflectionHelper.getFieldsValues(objectData, fields);
         try {
             id = dbExecutor.executeInsert(getConnection(), sql, params);
         } catch (SQLException e) {
-            logger.error(sql);
-            logger.error(String.valueOf(params));
-            logger.error(e.getMessage(), e);
+            throw new JdbcMapperSQLException(e);
         }
-        Field idField =  entityCMD.getIdField();
+        Field idField =  entityClassMetaData.getIdField();
         if (idField != null) {
             try {
                 idField.setAccessible(true);
@@ -63,35 +60,37 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T> {
 
     // Изменения информации об объекте в БД
     @Override
-    public void update(T objectData) {
-        List<Field> fields = entityCMD.getFieldsWithoutId();
+    public void update(T objectData) throws JdbcMapperSQLException {
+        List<Field> fields = entityClassMetaData.getFieldsWithoutId();
         try {
-            String sql = entitySMD.getUpdateSql();
+            String sql = entitySQLMetaData.getUpdateSql();
             List<Object> params;
-            params = getFieldsValues(objectData, fields);
+            params = jdbcMapperReflectionHelper.getFieldsValues(objectData, fields);
 
-            Object id = getIdValue(objectData);
+            Object id = jdbcMapperReflectionHelper.getIdValue(objectData);
             params.add(id);
             dbExecutor.executeInsert(getConnection(), sql, params);
-        } catch (SQLException | IllegalAccessException ex) {
-            logger.error(ex.getMessage(), ex);
+        } catch (SQLException e) {
+            throw new JdbcMapperSQLException(e);
         }
     }
 
     // Сохранение или изменение информации об объекте в БД.
     // Наличе объекта в базе определяем только по его @Id полю.
     @Override
-    public void insertOrUpdate(T objectData) {
-        long id = getIdValue(objectData);
-        if (id != 0) {
+    public void insertOrUpdate(T objectData) throws JdbcMapperSQLException {
+        Object id = jdbcMapperReflectionHelper.getIdValue(objectData);
+        if (id != null) {
             try {
-                String sql = entitySMD.getSelectByIdSql();
+                String sql = String.format("SELECT 1 FROM %s WHERE %s=? limit 1",
+                        entityClassMetaData.getName().toLowerCase(),
+                        entityClassMetaData.getIdField().getName().toLowerCase());
                 Optional<T> optObject = dbExecutor.executeSelect(getConnection(), sql, id, rs -> {
                     try {
                         if (rs.next()) {
-                            return entityCMD.createEmptyObject();
+                            return jdbcMapperReflectionHelper.createEmptyObject();
                         }
-                    } catch (SQLException | InstantiationException | InvocationTargetException | IllegalAccessException ex) {
+                    } catch (SQLException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException ex) {
                         logger.error(ex.getMessage(), ex);
                     }
                     return null;
@@ -119,7 +118,7 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T> {
     public T findById(Object id, Class<T> clazz) {
         Optional<T> optObject = Optional.empty();
         try {
-            String sql = entitySMD.getSelectByIdSql();
+            String sql = entitySQLMetaData.getSelectByIdSql();
             optObject = dbExecutor.executeSelect(getConnection(), sql, id, this::apply);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -131,47 +130,21 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T> {
         return sessionManager.getCurrentSession().getConnection();
     }
 
-    // Возвращает значение поля, помеченного аннотацией @Id
-    public long getIdValue(T objectData) {
-        long id = 0;
-        Field idField = entityCMD.getIdField();
-        if (idField != null) {
-            try {
-                idField.setAccessible(true);
-                id = idField.getLong(objectData);
-            } catch (IllegalAccessException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-        return id;
-    }
-
-    // Метод возвращает список значений полей объекта object
-    // в порядке, соответствующем списку полей fields
-    private List<Object> getFieldsValues(T object, List<Field> fields) throws IllegalAccessException {
-        List<Object> values = new ArrayList<>();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            values.add(field.get(object));
-        }
-        return values;
-    }
-
     private T apply(ResultSet rs) {
         try {
             if (rs.next()) {
-                T instance = entityCMD.createEmptyObject();
+                T instance = jdbcMapperReflectionHelper.createEmptyObject();
                 restoreObjectFields(rs, instance);
                 return instance;
             }
-        } catch (SQLException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        } catch (SQLException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
             logger.error(e.getMessage(), e);
         }
         return null;
     }
 
     private void restoreObjectFields(ResultSet rs, T instance) throws SQLException, IllegalAccessException {
-        for (Field field : entityCMD.getAllFields()) {
+        for (Field field : entityClassMetaData.getAllFields()) {
             String fieldName = field.getName();
             Class<?> typeField = field.getType();
             field.setAccessible(true);
