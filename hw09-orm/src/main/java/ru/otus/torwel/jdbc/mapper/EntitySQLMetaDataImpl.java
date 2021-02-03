@@ -37,12 +37,10 @@ public class EntitySQLMetaDataImpl implements EntitySQLMetaData {
             cacheSelectByIdSql = getSelectAllSql();
         }
         else {
-            StringBuilder request = new StringBuilder();
-            request.append("SELECT * FROM ")
-                    .append(entityCMD.getName().toLowerCase())
-                    .append(" WHERE ")
-                    .append(idField.getName().toLowerCase())
-                    .append(" = ?");
+            String request = String.format("SELECT * FROM %s WHERE %s = ?",
+                    entityCMD.getName().toLowerCase(),
+                    idField.getName().toLowerCase()
+                    );
             cacheSelectByIdSql = request.toString();
         }
         return cacheSelectByIdSql;

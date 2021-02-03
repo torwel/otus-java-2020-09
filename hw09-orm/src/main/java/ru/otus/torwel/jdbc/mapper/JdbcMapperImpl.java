@@ -81,29 +81,12 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T> {
     public void insertOrUpdate(T objectData) throws JdbcMapperSQLException {
         Object id = jdbcMapperReflectionHelper.getIdValue(objectData);
         if (id != null) {
-            try {
-                String sql = String.format("SELECT 1 FROM %s WHERE %s=? limit 1",
-                        entityClassMetaData.getName().toLowerCase(),
-                        entityClassMetaData.getIdField().getName().toLowerCase());
-                Optional<T> optObject = dbExecutor.executeSelect(getConnection(), sql, id, rs -> {
-                    try {
-                        if (rs.next()) {
-                            return jdbcMapperReflectionHelper.createEmptyObject();
-                        }
-                    } catch (SQLException | InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException ex) {
-                        logger.error(ex.getMessage(), ex);
-                    }
-                    return null;
-                });
-                if (optObject.isPresent()) {
-                    update(objectData);
-                }
-                else {
-                    // объекта с таким id нет в БД, вставляем объект в БД
-                    insert(objectData);
-                }
-            } catch (SQLException throwables) {
-                logger.error(throwables.getMessage(), throwables);
+            if (exist(id)) {
+                update(objectData);
+            }
+            else {
+                // объекта с таким id нет в БД, вставляем объект в БД
+                insert(objectData);
             }
         }
         else {
@@ -130,6 +113,24 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T> {
         return sessionManager.getCurrentSession().getConnection();
     }
 
+    // Метод проверяет существует ли запись в БД с переданным Id
+    private boolean exist(Object id) {
+        String sql = String.format("SELECT EXISTS (SELECT 1 FROM %s WHERE %s = ?)",
+                entityClassMetaData.getName().toLowerCase(),
+                entityClassMetaData.getIdField().getName().toLowerCase()
+        );
+        try (var pst = getConnection().prepareStatement(sql)) {
+            pst.setObject(1, id);
+            try (var rs = pst.executeQuery()) {
+                rs.next();
+                return rs.getBoolean(1);
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return false;
+    }
+
     private T apply(ResultSet rs) {
         try {
             if (rs.next()) {
@@ -146,40 +147,9 @@ public class JdbcMapperImpl<T> implements JdbcMapper<T> {
     private void restoreObjectFields(ResultSet rs, T instance) throws SQLException, IllegalAccessException {
         for (Field field : entityClassMetaData.getAllFields()) {
             String fieldName = field.getName();
-            Class<?> typeField = field.getType();
             field.setAccessible(true);
-
-            if (!typeField.isPrimitive()) {
-                Object value = rs.getObject(fieldName, typeField);
-                field.set(instance, value);
-            }
-            else if (typeField == boolean.class) {
-                field.setBoolean(instance, rs.getBoolean(fieldName));
-            }
-            else if (typeField == char.class) {
-                String value = rs.getString(fieldName);
-                if (value.length() <= 1) {
-                    field.setChar(instance, value.charAt(0));
-                }
-            }
-            else if (typeField == byte.class) {
-                field.setByte(instance, rs.getByte(fieldName));
-            }
-            else if (typeField == short.class) {
-                field.setShort(instance, rs.getShort(fieldName));
-            }
-            else if (typeField == int.class) {
-                field.setInt(instance, rs.getInt(fieldName));
-            }
-            else if (typeField == long.class) {
-                field.setLong(instance, rs.getLong(fieldName));
-            }
-            else if (typeField == float.class) {
-                field.setFloat(instance, rs.getFloat(fieldName));
-            }
-            else if (typeField == double.class) {
-                field.setDouble(instance, rs.getDouble(fieldName));
-            }
+            Object value = rs.getObject(fieldName);
+            field.set(instance, value);
         }
     }
 }
