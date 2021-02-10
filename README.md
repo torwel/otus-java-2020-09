@@ -19,8 +19,8 @@
 - [HW-06. ATM emulator.](#hw06)
 - [HW-07. Design patterns.](#hw07)
 - [HW-08. JSON object writer.](#hw08)
-- [HW-09. DIY ORM.](hw09)
-- [HW-10. Hibernate.](hw10)
+- [HW-09. DIY ORM.](#hw09)
+- [HW-10. Hibernate.](#hw10)
 
 ---
 
@@ -264,8 +264,6 @@ Java Reflection и работа с собственными аннотациям
 Также создан проверочный класс `Account` и соответствующие ему классы:
 - `class DbServiceAccountImpl implements DbServiceAccount`
 - `class AccountDaoJdbc implements AccountDao`
-
-
 
 
 #### Как использовать
