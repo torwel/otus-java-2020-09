@@ -20,6 +20,7 @@
 - [HW-07. Design patterns.](#hw07)
 - [HW-08. JSON object writer.](#hw08)
 - [HW-09. DIY ORM.](hw09)
+- [HW-10. Hibernate.](hw10)
 
 ---
 
@@ -288,6 +289,38 @@ ORM с классом Account.
 `NewClass`, реализовать предназначенные для него интерфейсы `DBServiceNewClass` и
 `NewClassDaoJdbc`. А также описать таблицу для него в файле:
 `hw09-orm/src/main/resources/db/migration/V1__initial_schema.sql`.
+
+---
+
+<a name="hw10"></a>
+### HW-10. Hibernate.
+
+
+#### Постановка задачи
+
+Цель: На практике освоить основы Hibernate.
+
+Понять как аннотации Hibernate влияют на формирование sql-запросов.
+
+Работа должна использовать базу данных в docker-контейнере.
+
+
+#### Реализация
+
+За основу взят пакет `ru.otus.torwel.core` из предыдущего ДЗ (Самодельный ORM).
+В пакете `ru.otus.torwel.hibernate` реализован функционал сохранения и чтения
+объекта `Client` через Hibernate.
+Конфигурация Hibernate вынесена в файл `hw10-ormHibernate/src/main
+/resources/hibernate.cfg.xml`.
+
+В класс `Client` добавлены поля типа `AddressDataSet` и `List<PhoneDataSet> phones`.
+Все три класса размечены таким образом, чтобы при сохранении/чтении объека `Client`
+каскадно сохранялись/читались вложенные объекты.
+
+
+#### Как использовать
+
+Работа релизованного пакета продемонстрирована в тесте `DbServiceClientImplTest.java`.
 
 
 ---
