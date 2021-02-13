@@ -19,7 +19,7 @@ public class Client {
     @JoinColumn(name="address_id")
     private AddressDataSet addressDataSet;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "client")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "client", fetch = FetchType.EAGER)
     private List<PhoneDataSet> phones;
 
     public Client() {
