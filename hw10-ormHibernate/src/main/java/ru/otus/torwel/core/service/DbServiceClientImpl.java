@@ -23,11 +23,13 @@ public class DbServiceClientImpl implements DBServiceClient {
             sessionManager.beginSession();
             try {
                 long clientId = clientDao.insertOrUpdate(client);
+//                long clientId = clientDao.insert(client);
                 sessionManager.commitSession();
 
                 logger.info("created client: {}", clientId);
                 return clientId;
             } catch (Exception e) {
+                logger.error(e.getMessage(), e);
                 sessionManager.rollbackSession();
                 throw new DbServiceException(e);
             }
