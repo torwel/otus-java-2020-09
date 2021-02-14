@@ -21,6 +21,7 @@
 - [HW-08. JSON object writer.](#hw08)
 - [HW-09. DIY ORM.](#hw09)
 - [HW-10. Hibernate.](#hw10)
+- [HW-11. DIY Cache Engine.](#hw11)
 
 ---
 
@@ -318,7 +319,39 @@ ORM с классом Account.
 
 #### Как использовать
 
-Работа релизованного пакета продемонстрирована в тесте `DbServiceClientImplTest.java`.
+Работа реализованного пакета продемонстрирована в тесте `DbServiceClientImplTest.java`.
+
+
+---
+
+<a name="hw11"></a>
+### HW-11. DIY Cache Engine.
+
+
+#### Постановка задачи
+
+Цель: Научится применять `WeakHashMap`, понять базовый принцип организации
+кеширования.
+
+
+#### Реализация
+
+Реализован класс `MyCache` из вебинара. Использован класс `WeakHashMap`
+для хранения значений.
+
+Добавлено кэширование в класс `DBService` из задания про Hibernate ORM.
+
+
+#### Как использовать
+
+Должен быть запущен Docker с PostgreSQL. Команды запуска и остановки в директории
+`hw11-DIYCacheEngine/docker`.
+
+Для демонстрации выполненного задания в `Demo.main(...)` запускается два метода:
+- `testClientLoadingWithCache(DbServiceClientImpl)` - для оценки скорости загрузки
+  объекта с помощью кэша и без;
+- `testCacheClearing(DbServiceClientImpl)` - для проверки очистки кэша при недостатке
+  памяти. В параметрах VM необходимо указать -Xmx15g.
 
 
 ---
