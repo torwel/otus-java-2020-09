@@ -13,9 +13,10 @@ public class DbServiceClientImpl implements DBServiceClient {
     private static final Logger logger = LoggerFactory.getLogger(DbServiceClientImpl.class);
 
     private final ClientDao clientDao;
-    private HwCache<String, Client> cache;
-    public DbServiceClientImpl(ClientDao clientDao) {
+    private final HwCache<String, Client> cache;
+    public DbServiceClientImpl(ClientDao clientDao, HwCache<String, Client> cache) {
         this.clientDao = clientDao;
+        this.cache = cache;
     }
 
     @Override
@@ -28,7 +29,7 @@ public class DbServiceClientImpl implements DBServiceClient {
                 sessionManager.commitSession();
                 logger.info("created client: {}", clientId);
                 if (cache != null) {
-                    cache.put(String.valueOf(client.getId()), client);
+                    cache.put(buildKey(client.getId()), client);
                     logger.info("client cached: {}", cache.toString());
                 }
                 return clientId;
@@ -44,7 +45,7 @@ public class DbServiceClientImpl implements DBServiceClient {
     @Override
     public Optional<Client> getClient(long id) {
         if (cache != null) {
-            Client client = cache.get(String.valueOf(id));
+            Client client = cache.get(buildKey(id));
             if (client != null) {
                 return Optional.of(client);
             }
@@ -54,6 +55,10 @@ public class DbServiceClientImpl implements DBServiceClient {
             try {
                 Optional<Client> clientOptional = clientDao.findById(id);
                 logger.info("client: {}", clientOptional.orElse(null));
+                clientOptional.ifPresent(cl -> {
+                    assert cache != null;
+                    cache.put(buildKey(cl.getId()), cl);
+                });
                 return clientOptional;
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -63,11 +68,7 @@ public class DbServiceClientImpl implements DBServiceClient {
         }
     }
 
-    public HwCache<String, Client> getCache() {
-        return cache;
-    }
-
-    public void setCache(HwCache<String, Client> cache) {
-        this.cache = cache;
+    private String buildKey(long id) {
+        return String.valueOf(id);
     }
 }

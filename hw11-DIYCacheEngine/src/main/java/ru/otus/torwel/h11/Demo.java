@@ -32,21 +32,21 @@ public class Demo {
 
         SessionManagerHibernate sessionManager = new SessionManagerHibernate(sessionFactory);
         ClientDao clientDao = new ClientDaoHibernate(sessionManager);
-        DbServiceClientImpl dbServiceClient = new DbServiceClientImpl(clientDao);
-
         MyCache<String, Client> cache = new MyCache<>();
-        dbServiceClient.setCache(cache);
+        DbServiceClientImpl dbServiceClient = new DbServiceClientImpl(clientDao, cache);
 
-        testCacheClearing(dbServiceClient);
+        testCacheClearingByInserting(dbServiceClient, cache);
+        testCacheClearingBySelecting(dbServiceClient, cache);
 
-//        Для сравнения с работой без кэша раскомментировать
+//        Для сравнения с работой без кэша раскоментировать
 //        dbServiceClient.setCache(null);
         testClientLoadingWithCache(dbServiceClient);
    }
 
-    private static void testCacheClearing(DbServiceClientImpl dbServiceClient) {
-        long firstClientId = -1;
-        String firstClientIdStr = "";
+    private static void testCacheClearingByInserting(DbServiceClientImpl dbServiceClient,
+                                                     MyCache<String, Client> cache) {
+        long firstCachedClientId = -1;
+        String firstCachedClientIdStr = "";
         for (int i = 1; i <= 150; i++) {
             Client newClient = createDefaultClient("Jack Black " + i);
             dbServiceClient.saveClient(newClient);
@@ -54,12 +54,12 @@ public class Demo {
 
             // Если кэш будет сброшен, то цикл остановится раньше
             // VM Options: -Xmx15m
-            if (firstClientId < 0) {
-                firstClientId = newClient.getId();
-                firstClientIdStr = String.valueOf(firstClientId);
+            if (firstCachedClientId < 0) {
+                firstCachedClientId = newClient.getId();
+                firstCachedClientIdStr = String.valueOf(firstCachedClientId);
             }
             else {
-                if (dbServiceClient.getCache().get(firstClientIdStr) == null) {
+                if (cache.get(firstCachedClientIdStr) == null) {
                     logger.info("cache cleared");
                     break;
                 }
@@ -67,7 +67,38 @@ public class Demo {
         }
     }
 
-    private static void testClientLoadingWithCache(DbServiceClientImpl dbServiceClient) {
+    // Необходимо достаточное количество записей в БД. Ориентировочно 80.
+    private static void testCacheClearingBySelecting(DbServiceClientImpl dbServiceClient,
+                                                     MyCache<String, Client> cache) {
+        final long[] firstCachedClientId = {-1};
+        final String[] firstCachedClientIdStr = {""};
+        for (int i = 1; i <= 150; i++) {
+            Optional<Client> clientOptional = dbServiceClient.getClient(i);
+            clientOptional.ifPresentOrElse(
+                    client -> logger.info(" *** Loaded client, id: {}, name: {}", client.getId(), client.getName()),
+                    () -> logger.info("client was not loaded")
+            );
+
+            // Если кэш будет сброшен, то цикл остановится раньше
+            // VM Options: -Xmx15m
+            if (firstCachedClientId[0] < 0) {
+                clientOptional.ifPresent(
+                        (client) -> {
+                            firstCachedClientId[0] = client.getId();
+                            firstCachedClientIdStr[0] = String.valueOf(firstCachedClientId[0]);
+                        }
+                );
+            }
+            else {
+                if (cache.get(firstCachedClientIdStr[0]) == null) {
+                    logger.info("cache cleared");
+                    break;
+                }
+            }
+        }
+    }
+
+        private static void testClientLoadingWithCache(DbServiceClientImpl dbServiceClient) {
         Client newClient = createDefaultClient("Billy Jones");
         logger.info(" *** object client, name: {}", newClient);
 

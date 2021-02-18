@@ -1,5 +1,8 @@
 package ru.otus.torwel.h11.cachehw;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -10,6 +13,7 @@ import java.util.WeakHashMap;
  * created on 14.12.18.
  */
 public class MyCache<K, V> implements HwCache<K, V> {
+    private final static Logger logger = LoggerFactory.getLogger(MyCache.class);
 
     private final Map<K, V> cache  = new WeakHashMap<>();
     private final ArrayList<HwListener<K, V>> listeners = new ArrayList<>();
@@ -17,7 +21,7 @@ public class MyCache<K, V> implements HwCache<K, V> {
     @Override
     public void put(K key, V value) {
         cache.put(key, value);
-        listeners.forEach(listener -> listener.notify(key, value, "put value"));
+        notifyListeners(key, value);
     }
 
     @Override
@@ -43,5 +47,15 @@ public class MyCache<K, V> implements HwCache<K, V> {
     @Override
     public String toString() {
         return "Cache size: " + cache.size();
+    }
+
+    private void notifyListeners(K key, V value) {
+        for (HwListener<K, V> listener : listeners) {
+            try {
+                listener.notify(key, value, "put value");
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
     }
 }
