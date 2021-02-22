@@ -1,0 +1,64 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Пользователи</title>
+        <script>
+            function getUserById() {
+                const userIdTextBox = document.getElementById('userIdTextBox');
+                const userDataContainer = document.getElementById('userDataContainer');
+                const id = userIdTextBox.value;
+                fetch('api/user/' + id)
+                    .then(response => response.json())
+                    .then(user => userDataContainer.innerHTML = JSON.stringify(user));
+            }
+        </script>
+        <script>
+            function getAllUsers() {
+                const userDataContainer = document.getElementById('userDataContainer');
+                fetch('api/user/')
+                    .then(response => response.json())
+                    .then(user => userDataContainer.innerHTML = JSON.stringify(user));
+            }
+        </script>
+        <script>
+            function saveUser() {
+                const userNameTextBox = document.getElementById('userNameTextBox');
+                var name = userNameTextBox.value;
+                const userLoginTextBox = document.getElementById('userLoginTextBox');
+                var login = userLoginTextBox.value;
+                const userPasswordTextBox = document.getElementById('userPasswordTextBox');
+                var password = userPasswordTextBox.value;
+                const isAdminCheckBox = document.getElementById('isAdminCheckBox');
+                var isAdmin;
+                if (isAdminCheckBox.checked) {
+                    isAdmin = 'true';
+                }
+                else {
+                    isAdmin = 'false';
+                }
+
+                const userDataContainer = document.getElementById('userDataContainer');
+
+                fetch('api/user?name=' + name + '&login=' + login + '&password=' + password + '&isAdmin=' + isAdmin,
+                 {method: 'POST'})
+                    .then(response => response.json())
+                    .then(user => userDataContainer.innerHTML = JSON.stringify(user));
+            }
+        </script>
+    </head>
+
+    <body>
+
+        Id пользователя <input type="text" id = "userIdTextBox" placeholder="Id пользователя"><Br><Br>
+        Имя пользователя <input type="text" id = "userNameTextBox" placeholder="Имя пользователя"><Br><Br>
+        Логин пользователя <input type="text" id = "userLoginTextBox" placeholder="Логин пользователя"><Br><Br>
+        Пароль пользователя <input type="text" id = "userPasswordTextBox" placeholder="Пароль пользователя"><Br><Br>
+        <input type="checkbox" id="isAdminCheckBox"> Права администратора<Br><Br>
+        <Br><Br>
+        <button onclick="getUserById()">Получить пользователя по id</button><Br><Br>
+        <button onclick="getAllUsers()">Получить список пользоватей</button><Br><Br>
+        <button onclick="saveUser()">Создать пользователя</button><Br><Br>
+
+        <pre id = "userDataContainer"></pre>
+
+    </body>
+</html>
