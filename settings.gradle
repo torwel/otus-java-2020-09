@@ -19,9 +19,5 @@ include 'hw08-jsonObjectWriter'
 include 'hw09-orm'
 include 'hw10-ormHibernate'
 include 'hw11-DIYCacheEngine'
-<<<<<<< HEAD
-//include 'hw12-webServer'
-include 'hw13-DIYIoCContainer'
-=======
 include 'hw12-webServer'
->>>>>>> main
+include 'hw13-DIYIoCContainer'
