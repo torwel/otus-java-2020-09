@@ -1,6 +1,7 @@
 package ru.otus.torwel.h12.servlets;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServlet;
@@ -47,19 +48,19 @@ public class UsersApiServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String name = request.getParameter(PARAM_NAME);
-        String login = request.getParameter(PARAM_LOGIN);
-        String password = request.getParameter(PARAM_PASSWORD);
-        boolean isAdmin = request.getParameter(PARAM_IS_ADMIN).equals("true");
-        User user = new User(0L, name, login, password, isAdmin);
-
         response.setContentType("application/json;charset=UTF-8");
         ServletOutputStream out = response.getOutputStream();
-        JsonMessage msg = null;
-        try {
+        JsonMessage msg;
+        try{
+            User user = gson.fromJson(request.getReader(), User.class);
             dbServiceUser.saveUser(user);
             msg = new JsonMessage("success", "id: " + user.getId());
+        }
+        catch (JsonParseException e){
+            response.setStatus(200);
+            msg = new JsonMessage("Error", "Ошибка парсинга данных пользователя.");
         } catch (DbServiceException e) {
+            response.setStatus(200);
             msg = new JsonMessage("Error", "Пользователь не создан - " + e.getMessage());
         }
         out.print(gson.toJson(msg));
