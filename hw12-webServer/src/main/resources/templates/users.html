@@ -22,24 +22,26 @@
         <script>
             function saveUser() {
                 const userNameTextBox = document.getElementById('userNameTextBox');
-                var name = userNameTextBox.value;
                 const userLoginTextBox = document.getElementById('userLoginTextBox');
-                var login = userLoginTextBox.value;
                 const userPasswordTextBox = document.getElementById('userPasswordTextBox');
-                var password = userPasswordTextBox.value;
                 const isAdminCheckBox = document.getElementById('isAdminCheckBox');
-                var isAdmin;
-                if (isAdminCheckBox.checked) {
-                    isAdmin = 'true';
-                }
-                else {
-                    isAdmin = 'false';
-                }
-
                 const userDataContainer = document.getElementById('userDataContainer');
 
-                fetch('api/user?name=' + name + '&login=' + login + '&password=' + password + '&isAdmin=' + isAdmin,
-                 {method: 'POST'})
+				var data = {
+							name: userNameTextBox.value,
+							login: userLoginTextBox.value,
+							password: userPasswordTextBox.value,
+							isAdmin: isAdminCheckBox.checked
+							};
+
+
+                fetch('api/user', {
+					method: 'POST',
+					body: JSON.stringify(data),
+					headers: {
+							'Content-Type': 'application/json'
+					}
+				})
                     .then(response => response.json())
                     .then(user => userDataContainer.innerHTML = JSON.stringify(user));
             }
