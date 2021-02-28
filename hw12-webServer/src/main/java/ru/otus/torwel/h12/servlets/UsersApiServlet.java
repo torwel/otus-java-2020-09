@@ -33,16 +33,14 @@ public class UsersApiServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         long id = extractIdFromRequest(request);
+        response.setContentType("application/json;charset=UTF-8");
+        ServletOutputStream out = response.getOutputStream();
         if (id > 0 ) {
             User user = dbServiceUser.getUser(id).orElse(null);
-            response.setContentType("application/json;charset=UTF-8");
-            ServletOutputStream out = response.getOutputStream();
             out.print(gson.toJson(user));
         }
         else if (id == -1 ) {
             List<User> users = dbServiceUser.findAll();
-            response.setContentType("application/json;charset=UTF-8");
-            ServletOutputStream out = response.getOutputStream();
             out.print(gson.toJson(users));
         }
     }
@@ -57,15 +55,14 @@ public class UsersApiServlet extends HttpServlet {
 
         response.setContentType("application/json;charset=UTF-8");
         ServletOutputStream out = response.getOutputStream();
-        String msg = null;
+        JsonMessage msg = null;
         try {
             dbServiceUser.saveUser(user);
-            msg = "{\"id\": " + user.getId() + "}";
+            msg = new JsonMessage("success", "id: " + user.getId());
         } catch (DbServiceException e) {
-            msg = "{\"Error\": \"Пользователь не создан\", "
-                    + "\"Message\": \"" + e.getMessage() + "\"}";
+            msg = new JsonMessage("Error", "Пользователь не создан - " + e.getMessage());
         }
-        out.print(msg);
+        out.print(gson.toJson(msg));
     }
 
     private long extractIdFromRequest(HttpServletRequest request) {
@@ -74,4 +71,13 @@ public class UsersApiServlet extends HttpServlet {
         return Long.parseLong(id);
     }
 
+    private class JsonMessage {
+        private final String status;
+        private final String message;
+
+        public JsonMessage(String status, String message) {
+            this.status = status;
+            this.message = message;
+        }
+    }
 }
