@@ -7,8 +7,8 @@ import ru.otus.torwel.h13.appcontainer.api.AppComponentsContainerConfig;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AppComponentsContainerImpl implements AppComponentsContainer {
 
@@ -52,13 +52,15 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
 
     private void processConfigs(List<Class<?>> initialConfigs) {
         initialConfigs.sort(Comparator.comparingInt(o -> o.getAnnotation(AppComponentsContainerConfig.class).order()));
-        initialConfigs.forEach(this::processConfig);
+        for (Class<?> initialConfig : initialConfigs) {
+            processConfig(initialConfig);
+        }
     }
 
     private void processConfig(Class<?> configClass) {
         checkConfigClass(configClass);
 
-        ArrayList<Method> markedMethods = getComponentMarkedMethods(configClass);
+        List<Method> markedMethods = getComponentMarkedMethods(configClass);
         if (!markedMethods.isEmpty()) {
             markedMethods.sort(Comparator.comparingInt(o -> o.getAnnotation(AppComponent.class).order()));
             try {
@@ -69,29 +71,23 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
                     appComponentsByName.put(method.getName(), component);
                 }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                e.printStackTrace();
+                throw new ProcessConfigReflectiveOperationException(e.getMessage(), e);
             }
         }
-
     }
 
     // Составляет список методов, аннотированных @AppComponent
-    private ArrayList<Method> getComponentMarkedMethods(Class<?> configClass) {
-        ArrayList<Method> methods = new ArrayList<>();
-        for (var method : configClass.getMethods()) {
-            if (method.isAnnotationPresent(AppComponent.class)) {
-                methods.add(method);
-            }
-        }
-        return methods;
+    private List<Method> getComponentMarkedMethods(Class<?> configClass) {
+        return Arrays.stream(configClass.getMethods())
+                .filter(method -> method.isAnnotationPresent(AppComponent.class))
+                .collect(Collectors.toList());
     }
 
     private Object createComponent(Object configInstance, Method method) throws IllegalAccessException, InvocationTargetException {
-        Parameter[] params = method.getParameters();
-        Object[] inputParams = new Object[params.length];
-        for (int i = 0; i < params.length; i++) {
-            Class<?> type = params[i].getType();
-            inputParams[i] = getAppComponent(type);
+        Class<?>[] types = method.getParameterTypes();
+        Object[] inputParams = new Object[types.length];
+        for (int i = 0; i < types.length; i++) {
+            inputParams[i] = getAppComponent(types[i]);
         }
         return method.invoke(configInstance, inputParams);
     }
