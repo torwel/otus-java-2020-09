@@ -23,7 +23,8 @@
 - [HW-10. Hibernate.](#hw10)
 - [HW-11. DIY Cache Engine.](#hw11)
 - [HW-12. Web-server.](#hw12)
-- [HW-13. DIY IoC Container](#hw13)
+- [HW-13. DIY IoC Container.](#hw13)
+- [HW-14. Spring MVC.](#hw14)
 
 ---
 
@@ -390,7 +391,7 @@ Web-сервер запускается методом `WebServerWithBasicSecuri
 ---
 
 <a name="hw13"></a>
-### HW-13. DIY IoC Container
+### HW-13. DIY IoC Container.
 
 #### Постановка задачи
 
@@ -428,3 +429,37 @@ Spring framework.
 
 
 ---
+
+<a name="hw14"></a>
+### HW-14. Spring MVC.
+
+
+#### Постановка задачи
+
+Цель: Научиться создавать war-пакеты и запускать их в TomCat.
+Научиться пользоваться Thymeleaf.
+
+- Собрать war для приложения из ДЗ про Web Server
+- Создавать основные классы приложения, как Spring beans (Кэш, Dao, DBService)
+- Настройку зависимостей выполнить с помощью Java/Annotation based конфигурации
+- Для обработки запросов использовать @Controller и/или @RestController
+- В качестве движка шаблонов использовать Thymeleaf
+- Запустить веб приложение во внешнем веб сервере
+
+
+#### Как использовать
+
+Установить TomCat. Выполнить сборку модуля.
+Файл `hw14-springMVC\build\libs\tor.war` скопировать в директорию
+`webapps` веб-сервера TomCat.
+
+Должен быть запущен docker-контейнер с Postgresql.
+Инструкции здесь: `hw12-webServer/docker`.
+
+Запустить веб-сервер `bin\startup.bat`.
+
+Приложение будет доступно по адресу: `http://localhost:8080/tor/`.
+
+
+---
+
