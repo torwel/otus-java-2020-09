@@ -450,13 +450,13 @@ Spring framework.
 #### Как использовать
 
 Установить TomCat. Выполнить сборку модуля.
-Файл `hw14-springMVC\build\libs\tor.war` скопировать в директорию
+Файл `hw14-springMVC/build/libs/tor.war` скопировать в директорию
 `webapps` веб-сервера TomCat.
 
 Должен быть запущен docker-контейнер с Postgresql.
 Инструкции здесь: `hw12-webServer/docker`.
 
-Запустить веб-сервер `bin\startup.bat`.
+Запустить веб-сервер `bin/startup.bat`.
 
 Приложение будет доступно по адресу: `http://localhost:8080/tor/`.
 
