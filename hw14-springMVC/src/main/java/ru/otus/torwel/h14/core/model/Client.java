@@ -1,7 +1,10 @@
-package ru.otus.torwel.core.model;
+package ru.otus.torwel.h14.core.model;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "clients")
@@ -16,9 +19,10 @@ public class Client {
     private String name;
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="address_id")
     private AddressDataSet addressDataSet;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "client", fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "client", fetch = FetchType.EAGER)
     private List<PhoneDataSet> phones;
 
     public Client() {

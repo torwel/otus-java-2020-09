@@ -6,6 +6,7 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import ru.otus.torwel.h14.helpers.HibernateConfigurationHelper;
 
 import java.util.Arrays;
 
@@ -22,6 +23,14 @@ public class HibernateUtils {
 
         Metadata metadata = metadataSources.getMetadataBuilder().build();
         return metadata.getSessionFactoryBuilder().build();
+    }
+
+    public static SessionFactory createSessionFactory(Class<?>... annotatedClasses) {
+        return createSessionFactory(getDefaultConfiguration(), annotatedClasses);
+    }
+
+    private static Configuration getDefaultConfiguration() {
+        return new HibernateConfigurationHelper().getConfiguration();
     }
 
 }

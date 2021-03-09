@@ -4,9 +4,10 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.otus.torwel.h14.core.dao.UserDao;
-import ru.otus.torwel.h14.core.dao.UserDaoException;
-import ru.otus.torwel.h14.core.model.User;
+import org.springframework.stereotype.Repository;
+import ru.otus.torwel.h14.core.dao.ClientDao;
+import ru.otus.torwel.h14.core.dao.ClientDaoException;
+import ru.otus.torwel.h14.core.model.Client;
 import ru.otus.torwel.h14.core.sessionmanager.SessionManager;
 import ru.otus.torwel.h14.hibernate.sessionmanager.DatabaseSessionHibernate;
 import ru.otus.torwel.h14.hibernate.sessionmanager.SessionManagerHibernate;
@@ -18,21 +19,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class UserDaoHibernate implements UserDao {
-    private static final Logger logger = LoggerFactory.getLogger(UserDaoHibernate.class);
+@Repository
+public class ClientDaoHibernate implements ClientDao {
+    private static final Logger logger = LoggerFactory.getLogger(ClientDaoHibernate.class);
 
     private final SessionManagerHibernate sessionManager;
 
-    public UserDaoHibernate(SessionManagerHibernate sessionManager) {
+    public ClientDaoHibernate(SessionManagerHibernate sessionManager) {
         this.sessionManager = sessionManager;
     }
 
     @Override
-    public Optional<User> findById(long id) {
+    public Optional<Client> findById(long id) {
         DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
         try {
             Session session = currentDbSession.getHibernateSession();
-            return Optional.ofNullable(session.find(User.class, id));
+            return Optional.ofNullable(session.find(Client.class, id));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -40,16 +42,17 @@ public class UserDaoHibernate implements UserDao {
     }
 
     @Override
-    public Optional<User> findByLogin(String login) {
+    public Optional<Client>  findByName(String name){
+
         DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
         try {
             Session session = currentDbSession.getHibernateSession();
             CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<User> criteria = builder.createQuery(User.class);
-            Root<User> from = criteria.from(User.class);
+            CriteriaQuery<Client> criteria = builder.createQuery(Client.class);
+            Root<Client> from = criteria.from(Client.class);
             criteria.select(from);
-            criteria.where(builder.equal(from.get("login"), login));
-            Query<User> query = session.createQuery(criteria);
+            criteria.where(builder.equal(from.get("name"), name));
+            Query<Client> query = session.createQuery(criteria);
             return Optional.ofNullable(query.getSingleResult());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -58,60 +61,60 @@ public class UserDaoHibernate implements UserDao {
     }
 
     @Override
-    public List<User> findAll() {
-        List<User> users = new ArrayList<>();
+    public long insert(Client client) {
+        DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
+        try {
+            Session session = currentDbSession.getHibernateSession();
+            session.persist(client);
+            session.flush();
+            return client.getId();
+        } catch (Exception e) {
+            throw new ClientDaoException(e);
+        }
+    }
+
+    @Override
+    public void update(Client client) {
+        DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
+        try {
+            Session hibernateSession = currentDbSession.getHibernateSession();
+            hibernateSession.merge(client);
+        } catch (Exception e) {
+            throw new ClientDaoException(e);
+        }
+    }
+
+    @Override
+    public long insertOrUpdate(Client client) {
+        DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
+        try {
+            Session hibernateSession = currentDbSession.getHibernateSession();
+            if (client.getId() > 0) {
+                hibernateSession.merge(client);
+            } else {
+                hibernateSession.persist(client);
+                hibernateSession.flush();
+            }
+            return client.getId();
+        } catch (Exception e) {
+            throw new ClientDaoException(e);
+        }
+    }
+
+    @Override
+    public List<Client> findAll() {
+        List<Client> clients = new ArrayList<>();
         DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
         try {
             Session session = currentDbSession.getHibernateSession();
             CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<User> criteria = builder.createQuery(User.class);
-            criteria.from(User.class);
-            users = session.createQuery(criteria).getResultList();
+            CriteriaQuery<Client> criteria = builder.createQuery(Client.class);
+            criteria.from(Client.class);
+            clients = session.createQuery(criteria).getResultList();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        return users;
-    }
-
-    @Override
-    public long insert(User user) {
-        DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
-        try {
-            Session session = currentDbSession.getHibernateSession();
-            session.persist(user);
-            session.flush();
-            return user.getId();
-        } catch (Exception e) {
-            throw new UserDaoException(e);
-        }
-    }
-
-    @Override
-    public void update(User user) {
-        DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
-        try {
-            Session hibernateSession = currentDbSession.getHibernateSession();
-            hibernateSession.merge(user);
-        } catch (Exception e) {
-            throw new UserDaoException(e);
-        }
-    }
-
-    @Override
-    public long insertOrUpdate(User user) {
-        DatabaseSessionHibernate currentDbSession = sessionManager.getCurrentSession();
-        try {
-            Session hibernateSession = currentDbSession.getHibernateSession();
-            if (user.getId() > 0) {
-                hibernateSession.merge(user);
-            } else {
-                hibernateSession.persist(user);
-                hibernateSession.flush();
-            }
-            return user.getId();
-        } catch (Exception e) {
-            throw new UserDaoException(e);
-        }
+        return clients;
     }
 
     @Override

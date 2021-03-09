@@ -47,6 +47,6 @@ tasks.withType(JavaCompile) {
 }
 
 war {
-    archiveName 'app.war'
+    archiveName 'tor.war'
     from 'src/main/resources'
 }

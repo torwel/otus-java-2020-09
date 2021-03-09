@@ -3,7 +3,10 @@ package ru.otus.torwel.h14.flyway;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import ru.otus.torwel.h14.helpers.HibernateConfigurationHelper;
 
+@Component
 public class MigrationsExecutorFlyway {
     private static final Logger logger = LoggerFactory.getLogger(MigrationsExecutorFlyway.class);
 
@@ -15,6 +18,15 @@ public class MigrationsExecutorFlyway {
                 .locations("classpath:/db/migration")
                 .load();
     }
+
+    public static MigrationsExecutorFlyway buildDefaultMigrationsExecutorFlyway() {
+        HibernateConfigurationHelper conf = new HibernateConfigurationHelper();
+        return new MigrationsExecutorFlyway(conf.getUrl(),
+                conf.getUsername(),
+                conf.getPassword());
+    }
+
+
 
     public void cleanDb() {
         flyway.clean();
