@@ -1,57 +1,56 @@
 package ru.otus.torwel.h15;
 
-public class SequenceOfNumber {
+public class Variant1 {
 
     private static final int COUNTER_MIN = 1;
     private static final int COUNTER_MAX = 10;
 
-    private static volatile int counter;
-    private static volatile int direction;
+    private static volatile int counter = 0;
+    private static volatile int step = 1;
 
 
     public static void main(String[] args) {
-        new SequenceOfNumber().startApp1();
+        new Variant1().startApp();
     }
 
-    private void startApp1(){
-        direction = 1;
-
-        Thread t1 = new Thread(this::step);
+    private void startApp(){
+        Thread t1 = new Thread(this::process);
         t1.setName("1   ");
 
-        Thread t2 = new Thread(this::step);
+        Thread t2 = new Thread(this::process);
         t2.setName("-      ");
 
-        t2.start();
         t1.start();
+        t2.start();
 
         sleep(24_000);
-//        sleep(100);
+        sleep(24);
         t1.interrupt();
         t2.interrupt();
     }
 
-    private void step() {
+    private void process() {
         int copyCounter = -1;
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 synchronized (this) {
                     while (counter == copyCounter) {
-                        this.wait();
+                        wait();
                     }
 
-                    counter = counter + direction;
+                    counter = counter + step;
                     System.out.printf("%s %d\n", Thread.currentThread().getName(), counter);
                     copyCounter = counter;
 
-                    if (counter == COUNTER_MAX) {
-                        direction = -1;
+                    if (copyCounter == COUNTER_MAX) {
+                        step = -1;
                     }
-                    if (counter == COUNTER_MIN) {
-                        direction = 1;
+                    if (copyCounter == COUNTER_MIN) {
+                        step = 1;
                     }
-                    sleep(500);
+
                     notifyAll();
+                    sleep(500);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
