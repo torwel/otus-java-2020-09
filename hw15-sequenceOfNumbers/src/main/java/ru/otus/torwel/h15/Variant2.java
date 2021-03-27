@@ -26,7 +26,6 @@ public class Variant2 {
         t2.start();
 
         sleep(24_000);
-        sleep(24);
         t1.interrupt();
         t2.interrupt();
 
