@@ -1,50 +1,57 @@
 plugins {
-//    id 'java'
-    id 'war'
+    id 'java'
+    id 'org.springframework.boot' version '2.4.2'
+    id 'io.spring.dependency-management'
 }
 
 sourceCompatibility = JavaVersion.VERSION_15
 targetCompatibility = JavaVersion.VERSION_15
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-    implementation 'ch.qos.logback:logback-classic'
-    implementation 'org.hibernate:hibernate-core'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.postgresql:postgresql'
-    implementation("com.google.code.gson:gson:${Versions.gson}")
 
-    implementation("org.javassist:javassist:3.24.0-GA")
+    implementation 'ch.qos.logback:logback-classic'
+//    implementation 'org.hibernate:hibernate-core'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.postgresql:postgresql'
+//    implementation("com.google.code.gson:gson:${Versions.gson}")
 
-    implementation("org.springframework:spring-context")
-    implementation("org.springframework:spring-webmvc")
-    implementation("org.springframework:spring-web")
-    implementation("org.thymeleaf:thymeleaf")
-    implementation("org.thymeleaf:thymeleaf-spring5")
-    providedCompile("javax.servlet:javax.servlet-api")
+//    implementation("org.javassist:javassist:3.24.0-GA")
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params'
-    testImplementation 'org.assertj:assertj-core'
-    testImplementation("org.mockito:mockito-junit-jupiter")
+//    implementation("org.springframework:spring-context")
+//    implementation("org.springframework:spring-webmvc")
+//    implementation("org.springframework:spring-web")
+//    implementation("org.thymeleaf:thymeleaf")
+//    implementation("org.thymeleaf:thymeleaf-spring5")
+//    providedCompile("javax.servlet:javax.servlet-api")
 
-    testCompile ("org.springframework:spring-test")
-    testCompile ("org.hamcrest:hamcrest-core")
+//    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+//    testImplementation 'org.assertj:assertj-core'
+//    testImplementation("org.mockito:mockito-junit-jupiter")
+
+//    testCompile ("org.springframework:spring-test")
+//    testCompile ("org.hamcrest:hamcrest-core")
 }
 
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-}
+//test {
+//    useJUnitPlatform()
+//    testLogging {
+//        events "passed", "skipped", "failed"
+//    }
+//}
 
 compileJava.options.encoding = 'UTF-8'
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-}
-
-war {
-    archiveName 'tor.war'
-    from 'src/main/resources'
 }

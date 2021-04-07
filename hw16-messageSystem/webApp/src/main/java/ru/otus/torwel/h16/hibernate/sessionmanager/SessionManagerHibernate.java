@@ -3,11 +3,9 @@ package ru.otus.torwel.h16.hibernate.sessionmanager;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.springframework.stereotype.Repository;
 import ru.otus.torwel.h16.core.sessionmanager.SessionManager;
 import ru.otus.torwel.h16.core.sessionmanager.SessionManagerException;
 
-@Repository
 public class SessionManagerHibernate implements SessionManager {
     private DatabaseSessionHibernate databaseSession;
     private final SessionFactory sessionFactory;

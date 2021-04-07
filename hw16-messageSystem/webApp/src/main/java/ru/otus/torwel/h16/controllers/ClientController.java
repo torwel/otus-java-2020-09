@@ -9,7 +9,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import ru.otus.torwel.h16.core.model.Client;
 import ru.otus.torwel.h16.core.service.DBServiceClient;
 
-
 import java.util.List;
 
 @Controller
@@ -25,13 +24,13 @@ public class ClientController {
     public String clientsListView(Model model) {
         List<Client> clients = dbServiceClient.findAll();
         model.addAttribute("clients", clients);
-        return "clientsList.html";
+        return "clientsList";
     }
 
     @GetMapping("/client/create")
     public String clientCreateView(Model model) {
         model.addAttribute("client", new Client());
-        return "clientCreate.html";
+        return "clientCreate";
     }
 
     @PostMapping("/client/save")
