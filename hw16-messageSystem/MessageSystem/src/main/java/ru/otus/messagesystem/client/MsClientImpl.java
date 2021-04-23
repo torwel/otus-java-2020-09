@@ -58,8 +58,10 @@ public class MsClientImpl implements MsClient {
     }
 
     @Override
-    public <T extends ResultDataType> Message produceMessage(String to, T data, MessageType msgType,
-                                                                MessageCallback<T> callback) {
+    public <T extends ResultDataType, E extends ResultDataType> Message produceMessage(String to,
+                                                                                       T data,
+                                                                                       MessageType msgType,
+                                                                                       MessageCallback<E> callback) {
         Message message = MessageBuilder.buildMessage(name, to, null, data, msgType);
         callbackRegistry.put(message.getCallbackId(), callback);
         return message;

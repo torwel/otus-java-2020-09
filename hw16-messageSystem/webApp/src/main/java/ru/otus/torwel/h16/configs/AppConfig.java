@@ -1,4 +1,4 @@
-package ru.otus.torwel.h16;
+package ru.otus.torwel.h16.configs;
 
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
@@ -44,6 +44,4 @@ public class AppConfig {
     public DBServiceClient dbServiceClient(ClientDao clientDao) {
         return new DbServiceClientImpl(clientDao);
     }
-
-
 }

@@ -1,5 +1,7 @@
 package ru.otus.torwel.h16.core.model;
 
+import ru.otus.messagesystem.client.ResultDataType;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,7 +10,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "clients")
-public class Client {
+public class Client extends ResultDataType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

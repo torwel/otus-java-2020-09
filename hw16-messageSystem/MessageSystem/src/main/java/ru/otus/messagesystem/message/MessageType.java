@@ -1,7 +1,9 @@
 package ru.otus.messagesystem.message;
 
 public enum MessageType {
-    USER_DATA("UserData");
+    USER_DATA("UserData"),
+    ALL_CLIENTS("AllClients"),
+    SAVE_CLIENT("SaveClient");
 
     private final String name;
 
@@ -11,5 +13,14 @@ public enum MessageType {
 
     public String getName() {
         return name;
+    }
+
+    public static MessageType getTypeByName(String name) {
+        for (MessageType type : values()) {
+            if (type.name.equals(name)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No such message type: " + name);
     }
 }

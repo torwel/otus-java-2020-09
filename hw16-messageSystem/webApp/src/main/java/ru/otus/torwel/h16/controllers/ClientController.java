@@ -20,7 +20,7 @@ public class ClientController {
         this.dbServiceClient = dbServiceClient;
     }
 
-    @GetMapping({"/", "/client/list"})
+    @GetMapping({"/client/list-old"})
     public String clientsListView(Model model) {
         List<Client> clients = dbServiceClient.findAll();
         model.addAttribute("clients", clients);
@@ -36,7 +36,7 @@ public class ClientController {
     @PostMapping("/client/save")
     public RedirectView clientSave(@ModelAttribute Client client) {
         dbServiceClient.saveClient(client);
-        return new RedirectView("/", true);
+        return new RedirectView("/client/list-old", true);
     }
 
 }

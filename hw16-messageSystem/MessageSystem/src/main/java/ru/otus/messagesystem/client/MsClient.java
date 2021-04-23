@@ -11,5 +11,8 @@ public interface MsClient {
 
     String getName();
 
-    <T extends ResultDataType> Message produceMessage(String to, T data, MessageType msgType, MessageCallback<T> callback);
+    <T extends ResultDataType, E extends ResultDataType> Message produceMessage(String to,
+                                                                                T data,
+                                                                                MessageType msgType,
+                                                                                MessageCallback<E> callback);
 }

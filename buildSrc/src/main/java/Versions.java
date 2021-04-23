@@ -7,4 +7,7 @@ public interface Versions {
     String gson = "2.8.6";
     String jetty = "11.0.0";
     String freemarker = "2.3.30";
+    String sockjs = "1.1.2";
+    String stomp = "2.3.3-1";
+    String bootstrap = "4.4.1-1";
 }

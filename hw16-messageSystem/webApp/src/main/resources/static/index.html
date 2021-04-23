@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>List of all clients</title>
+
+    <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/webjars/jquery/jquery.min.js"></script>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+    <script type="text/javascript">
+        var stompClient = null;
+
+        function connect() {
+            stompClient = Stomp.over(new SockJS('/tor-app-websocket'));
+            stompClient.connect({}, function(frame) {
+                setConnected(true);
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/client/list', function(data){
+                    showClients(JSON.parse(data.body).clientList);
+                });
+                stompClient.send("/app/client/list", {}, {});
+            });
+        }
+
+        function disconnect() {
+            stompClient.disconnect();
+            setConnected(false);
+            console.log("Disconnected");
+        }
+
+        function setConnected(connected) {
+            if(connected) {
+                $('#btnAddClient').removeAttr('disabled');
+            } else {
+                $('#btnAddClient').attr('disabled','disabled');
+            }
+        }
+
+        function showClients(clients) {
+            $("#rowsClients tr").remove();
+            for (let client of clients) {
+                $('<tr><td>' + client.id + '</td><td>' + client.name + '</td></tr>').appendTo($("#rowsClients"));
+            }
+        }
+
+        function addClient() {
+            let clientName = $("#textInputName").val();
+            stompClient.send("/app/client/new", {}, JSON.stringify({name: clientName}));
+        }
+
+        function getClient(url, valueControlName) {
+            const valueControl = document.getElementById(valueControlName);
+            const clientDataContainer = document.getElementById('clientDataContainer');
+            const fullUrl = url + (valueControl? (encodeURIComponent(valueControl.value)) : '');
+            fetch(fullUrl)
+                .then(response => response.json())
+                .then(client => clientDataContainer.innerHTML = JSON.stringify(client));
+        }
+
+    </script>
+
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        .clients, .clients td {
+            border: 1px solid lightgray;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        a {
+            display: block;
+        }
+
+        input {
+            width: 250px;
+        }
+
+        select {
+            width: 154px;
+        }
+
+        button {
+            width: 150px;
+        }
+
+        .controls-container {
+            margin-bottom: 5px;
+        }
+
+        .single-button-container {
+            margin-left: 158px;
+        }
+
+        h3 {
+            background: url("../static/listmark.png") no-repeat;
+            padding: 1px;
+            padding-left: 38px;
+        }
+    </style>
+</head>
+
+<body onload="connect()">
+<h3>Клиенты:</h3>
+
+<table id="tableClients" class="clients">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+    </tr>
+    </thead>
+    <tbody id="rowsClients"></tbody>
+</table>
+<br/><br/>
+
+<input id="textInputName" type="text"/><br/>
+<button id="btnAddClient" type="button" onclick="addClient()"  disabled>Добавить клиента</button>
+<br/><br/>
+
+
+<h3>API:</h3>
+
+<a href="/api/client?name=Jhonny%20Tip">
+    Запрос клиента по имени Jhonny Tip
+</a>
+<a href="/api/client/2">Запрос клиента с id = 2</a>
+<br/>
+<br/>
+
+<div class="controls-container">
+    <input type="text" id = "clientIdTextBox" value="3" placeholder="Введите id клиента" >
+    <button onclick="getClient('api/client/', 'clientIdTextBox')">Получить клиента по id</button>
+</div>
+<div class="controls-container">
+    <input type="text" id = "clientNameTextBox" placeholder="Введите имя клиента" >
+    <button onclick="getClient('api/client?name=', 'clientNameTextBox')">Получить клиента по имени</button>
+</div>
+
+<pre id = "clientDataContainer"></pre>
+
+</body>
+</html>
