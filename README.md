@@ -562,7 +562,10 @@ DBService и обратно.
 Должен быть запущен docker-контейнер с Postgresql.
 Инструкции здесь: `hw16-messageSystem/webApp/docker`.
 
-Приложение будет доступно по адресу: `http://localhost:8080/`.
+Приложение запускается классом 
+`hw16-messageSystem/webApp/src/main/java/ru/otus/torwel/h16/Launch.java`
+
+После запуска будет доступно по адресу: `http://localhost:8080/`.
 
 
 <br/>
