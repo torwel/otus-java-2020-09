@@ -27,6 +27,7 @@
 - [HW-13. DIY IoC Container.](#hw13)
 - [HW-14. Spring MVC.](#hw14)
 - [HW-15. Sequence of numbers.](#hw15)
+- [HW-16. MessageSystem.](#hw16)
 
 ---
 
@@ -544,5 +545,32 @@ Spring framework.
 
 ---
 
+<a name="hw16"></a>
+### HW-16. MessageSystem.
 
+
+#### Постановка задачи
+
+Цель: На практике освоить архитектурный подход "Система сообщений".
+
+Добавить систему обмена сообщениями в ДЗ про веб сервер с IoC контейнером
+(тут проще использовать Spring Boot). Пересылать сообщения из вебсокета в
+DBService и обратно.
+
+#### Как использовать
+
+Должен быть запущен docker-контейнер с Postgresql.
+Инструкции здесь: `hw16-messageSystem/webApp/docker`.
+
+Приложение запускается классом 
+`hw16-messageSystem/webApp/src/main/java/ru/otus/torwel/h16/Launch.java`
+
+После запуска будет доступно по адресу: `http://localhost:8080/`.
+
+
+<br/>
+
+[[вернуться к содержанию]](#content)
+
+---
 
