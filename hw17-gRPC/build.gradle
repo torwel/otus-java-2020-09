@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id "com.google.protobuf" version "0.8.12"
+    id "com.google.protobuf" version "0.8.14"
 }
 
 sourceCompatibility = JavaVersion.VERSION_15
@@ -8,43 +8,36 @@ targetCompatibility = JavaVersion.VERSION_15
 
 dependencies {
     implementation 'ch.qos.logback:logback-classic'
-    compile 'io.grpc:grpc-netty:1.30.2'
-    compile 'io.grpc:grpc-protobuf:1.30.2'
-    compile 'io.grpc:grpc-stub:1.30.2'
+    compile 'io.grpc:grpc-netty-shaded:1.35.0'
+    compile 'io.grpc:grpc-protobuf:1.35.0'
+    compile 'io.grpc:grpc-stub:1.35.0'
     compileOnly "org.apache.tomcat:annotations-api:6.0.53"
 }
 
-def filesBaseDir = "${project.projectDir}/src/"
-def protoSrcDir = "${project.projectDir}/src/main/proto"
-def grpcSrcDir = "${project.projectDir}/src/main/grpc"
+def projectSrcDir = 'src/main/java'
+def protoSrcDir = 'build/generated/source/proto/main/java'
+def grpcSrcDir = 'build/generated/source/proto/main/grpc'
 
 sourceSets {
     main {
-        proto {
-            srcDir protoSrcDir
-        }
         java {
-            srcDir grpcSrcDir
+            srcDirs = [projectSrcDir, grpcSrcDir, protoSrcDir]
         }
     }
 }
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.12.1'
+        artifact = 'com.google.protobuf:protoc:3.12.0'
     }
-
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.30.2'
-
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.35.0'
         }
     }
-
-    generatedFilesBaseDir = filesBaseDir
     generateProtoTasks {
-        ofSourceSet('main')*.plugins { grpc {} }
+        all()*.plugins {
+            grpc {}
+        }
     }
 }
-
-test {}
